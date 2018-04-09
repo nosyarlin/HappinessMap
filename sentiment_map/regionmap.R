@@ -3,6 +3,7 @@ library(rgdal)
 library(spatstat)
 library(sf)
 library(viridis)
+library(plotly)
 
 # read in files
 tweets <- read_csv("emoji_trunc.csv")
@@ -23,8 +24,8 @@ kml.data <- merge(join.summary, kml, by = "Name") %>% st_as_sf()
 kml.data <- st_as_sf(kml.data)
 kml.data <- kml.data %>% mutate(norm = (pos-neg)/count)
 
-ggplot() +
-  geom_sf(data = kml.data, aes(fill = (pos-neg)/count, geometry = geometry), lwd = 0) + 
+p <- ggplot() +
+  geom_sf(data = kml.data, aes(fill = (pos-neg)/count, geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
@@ -54,4 +55,10 @@ ggplot() +
     panel.grid.minor = element_line(colour = 'transparent')
   )
   
-  
+ggplotly(p, tooltip = "text") %>%
+  highlight(
+    "plotly_hover",
+    opacityDim = 1
+  )
+
+st_write(kml.data, "tweet_sentiment_pa.csv")
