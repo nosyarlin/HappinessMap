@@ -10,7 +10,7 @@ tweets <- read_csv("emoji_trunc.csv")
 shape <- readOGR(dsn = 'sg-shape', layer ='sg-all')
 kml <- st_read("planning_area.kml")
 
-# convert to sp points and polygon
+# convert to sf points and polygon
 tweets <- drop_na(tweets)
 tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs = 4326)
 
@@ -24,18 +24,23 @@ kml.data <- merge(join.summary, kml, by = "Name") %>% st_as_sf()
 kml.data <- st_as_sf(kml.data)
 kml.data <- kml.data %>% mutate(norm = (pos-neg)/count)
 
+<<<<<<< HEAD
+ggplot() +
+  geom_sf(data = kml.data, aes(fill = (pos-neg)/count, geometry = geometry), lwd = 0) +
+=======
 p <- ggplot() +
   geom_sf(data = kml.data, aes(fill = (pos-neg)/count, geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+>>>>>>> 708a80e731e25fd756499f7475a40e8e9d8ad271
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45), 
-    name="Normalized Sentiment", 
-    guide=guide_legend( 
+    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
+    name="Normalized Sentiment",
+    guide=guide_legend(
       keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"), 
-      label.position = "bottom", 
-      title.position = 'top', 
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
       nrow=1)) +
   labs(
     title = "Sentiments of Singaporeans in Different Planning Zones",
@@ -43,17 +48,22 @@ p <- ggplot() +
     caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
   ) +
   theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#f5f5f2", color = NA),
+    panel.background = element_rect(fill = "#f5f5f2", color = NA),
     legend.background = element_rect(fill = "#f5f5f2", color = NA),
     plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
     plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
     plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
     legend.position = c(0.7, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
+    panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
+<<<<<<< HEAD
+
+
+  
+=======
   
 ggplotly(p, tooltip = "text") %>%
   highlight(
@@ -62,3 +72,4 @@ ggplotly(p, tooltip = "text") %>%
   )
 
 st_write(kml.data, "tweet_sentiment_pa.csv")
+>>>>>>> 708a80e731e25fd756499f7475a40e8e9d8ad271
