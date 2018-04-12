@@ -52,7 +52,6 @@ tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
 
 insta <- drop_na(insta)
 insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
-insta.sf$X1 <- NULL
 
 pa.kml <- st_read("planning_area.kml")
 pa.sf <- st_as_sf(pa.kml, crs=4326)
@@ -65,7 +64,7 @@ hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
 
 # points in polygon
 colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "geometry")
+colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "geometry")
 
 t.join <- st_join(tweets.sf, hex.sf, join = st_within)
 t.join.df <- as.data.frame(t.join)
@@ -85,7 +84,7 @@ for (i in hex.sf$hexID) {
 }
 
 join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
-join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
+#join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
 
 kml.data <- merge(join.summary, hex.sf, by = "hexID") %>% st_as_sf()
 kml.data <- st_as_sf(kml.data)
@@ -145,4 +144,6 @@ ggplotly(p, tooltip = "text") %>%
     opacityDim = 1
   )
 
-st_write(kml.data, "twitter_sent.kml")
+hex.sent <- st_as_sf(kml.data, coords = c("lon", "lat"), crs = 4326)
+save(hex.sent, file="hex.sent")
+#st_write(hex.sent, "plots/hex_sent.kml")

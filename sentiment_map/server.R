@@ -96,10 +96,12 @@ function(input, output, session) {
 
   output$paPlots <- renderPlotly({
     # TODO: Just load a Rmd file?
-    # Load Rayson's map
-    tweet.sentiment.pa <- ggplot() +
-      # Convert to Title Case and round norm to 4 decimal places
-      geom_sf(data=reloaded, aes(fill=norm, geometry = geometry, text = paste0(gsub("([[:alpha:]])([[:alpha:]]+)", "\\U\\1\\L\\2", Name, perl=TRUE), "\n", "Sentiment: ", round(norm,4))), lwd = 0) + 
+    load("plots/hex.sent") # This is for Twitter / Instagram hex data
+
+    # Plot Twitter hex sentiment
+    p <- ggplot() +
+      geom_sf(data = hex.sent, aes(fill=t.norm, geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
+      theme_void() +
       coord_sf() +
       scale_fill_viridis(
         breaks=c(0,0.25,0.3,0.35,0.4,0.45),
@@ -111,7 +113,7 @@ function(input, output, session) {
           title.position = 'top',
           nrow=1)) +
       labs(
-        title = "Sentiments of Singaporeans in Different Planning Zones",
+        title = "Twitter Sentiments in Singapore",
         subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
         caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
       ) +
@@ -128,7 +130,11 @@ function(input, output, session) {
         panel.grid.minor = element_line(colour = 'transparent')
       )
 
-    ggplotly(tweet.sentiment.pa, tooltip = "text")
+    ggplotly(p, tooltip = "text") %>%
+      highlight(
+        "plotly_hover",
+        opacityDim = 1
+      )
   })
 
   output$sliderOutput <- renderUI({
