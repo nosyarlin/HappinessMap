@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Folder><name>Tanah Merah</name>
+  <Placemark>
+  	<name>Tanah Merah Landed</name>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><outerBoundaryIs><LinearRing><coordinates>103.959069053501,1.34052812447421 103.959488284284,1.3384164234935 103.955332256038,1.33639539499312 103.955066205734,1.33696765049015 103.953727892079,1.33638733505559 103.953937507471,1.33579089960499 103.95247019973,1.33524282365787 103.950333735161,1.33797514223816 103.95392138321,1.33964354766276 103.953268350644,1.34109433406505 103.954562322581,1.34175121762551 103.956497233888,1.33927279099987 103.959069053501,1.34052812447421</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+</Folder>
+</Document></kml>
