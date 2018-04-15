@@ -57,6 +57,7 @@ p <- ggplot() +
     panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
+
 p
 
   
@@ -67,3 +68,13 @@ p
 #  )
 
 #st_write(kml.data, "tweet_sentiment_pa.csv")
+
+  
+ggplotly(p, tooltip = "text") %>%
+  highlight(
+    "plotly_hover",
+    opacityDim = 1
+  )
+
+st_write(kml.data, "tweet_sentiment_pa.csv")
+
