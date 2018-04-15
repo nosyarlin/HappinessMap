@@ -66,3 +66,5 @@ p <- ggplot(polygons.sf) +
   )
 
 ggplotly(p)
+
+save(polygons.sf, file="richpoor.sent")
