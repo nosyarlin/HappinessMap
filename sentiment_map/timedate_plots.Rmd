@@ -3,7 +3,7 @@ title: "Odds Ratio Case Studies"
 output: html_notebook
 ---
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 library(tidyverse)
 library(lubridate)
 library(sp)
@@ -48,35 +48,33 @@ make_grid <- function(x, cell_diameter, cell_area, clip = FALSE) {
     
 # read in files
 tweets <- read_csv("emoji_trunc.csv")
+tweets <- tweets %>%
+  mutate(date = as_datetime(created_at/1000, tz = "Asia/Singapore")) %>%
+  mutate(weekday = wday(date))
 insta <- read_csv("instagram_trunc.csv")
-shape <- readOGR(dsn = 'sg-shape', layer ='sg-all')
+insta <- insta %>%
+  mutate(date = as_datetime(created_at/1000, tz = "Asia/Singapore")) %>%
+  mutate(weekday = wday(date))
+shape <- invisible(readOGR(dsn = 'sg-shape', layer ='sg-all'))
 shape <- gBuffer(shape, byid=TRUE, width=0) # clean up polygons
 ```
 
 **Case 1: Sentiments on Weekdays vs Weekends**
-```{r message = FALSE, warning = FALSE, error = FALSE}
+```{r, message = FALSE, warning = FALSE, error = FALSE}
 t_wday <- tweets %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
   filter(weekday < 6) # filter only tweets made on weekdays
   
 t_wend <- tweets %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
   filter(weekday > 5) # filter only tweets made on weekends  
   
 i_wday <- insta %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
   filter(weekday < 6) # filter only igs made on weekdays
   
 i_wend <- insta %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
   filter(weekday > 5) # filter only igs made on weekends  
 ```
   
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 # convert to sp points and polygon
 tweets <- drop_na(t_wday)
 # p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
@@ -176,7 +174,7 @@ ggplotly(p, tooltip = "text") %>%
   )
 ```
   
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 # convert to sp points and polygon
 tweets <- drop_na(t_wend)
 # p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
@@ -281,66 +279,46 @@ ggplotly(p, tooltip = "text") %>%
 
 We will be dividing the data into 4 time periods: 
 
-* SGT 00:00 - 05:59 -> UTC 16:00 - 21:59  
-* SGT 06:00 - 11:59 -> UTC 22:00 - 03:59  
-* SGT 12:00 - 17:59 -> UTC 04:00 - 09:59  
-* SGT 18:00 - 23:59 -> UTC 10:00 - 15:59  
+* SGT 00:00 - 05:59 
+* SGT 06:00 - 11:59  
+* SGT 12:00 - 17:59 
+* SGT 18:00 - 23:59
 
-```{r message = FALSE, warning = FALSE, error = FALSE}
+```{r, message = FALSE, warning = FALSE, error = FALSE}
 # Twitter
   
 t_time1 <- tweets %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 16 ) %>%
-  filter(hour(date) < 22) # filter tweets made between 12am - 6am
+  filter(hour(date) < 6) # filter tweets made between 12am - 6am
   
 t_time2 <- tweets %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 22 ) %>%
-  filter(hour(date) < 4) # filter tweets made between 6am - 12pm
+  filter(hour(date) >= 6) %>%
+  filter(hour(date) < 12) # filter tweets made between 6am - 12pm
   
 t_time3 <- tweets %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 4 ) %>%
-  filter(hour(date) < 10) # filter tweets made between 12pm - 6pm
+  filter(hour(date) >= 12) %>%
+  filter(hour(date) < 18) # filter tweets made between 12pm - 6pm
   
 t_time4 <- tweets %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 10 ) %>%
-  filter(hour(date) < 16) # filter tweets made between 6pm - 12am
+  filter(hour(date) >= 18) # filter tweets made between 6pm - 12am
   
 # Instagram
   
 i_time1 <- insta %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 16 ) %>%
-  filter(hour(date) < 22) # filter tweets made between 12am - 6am
+  filter(hour(date) < 6) # filter igs made between 12am - 6am
   
-i_time2 <- insta%>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 22 ) %>%
-  filter(hour(date) < 4) # filter tweets made between 6am - 12pm
+i_time2 <- insta %>%
+  filter(hour(date) >= 6) %>%
+  filter(hour(date) < 12) # filter igs made between 6am - 12pm
   
 i_time3 <- insta %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 4 ) %>%
-  filter(hour(date) < 10) # filter tweets made between 12pm - 6pm
+  filter(hour(date) >= 12) %>%
+  filter(hour(date) < 18) # filter igs made between 12pm - 6pm
   
 i_time4 <- insta %>%
-  mutate(date = as_datetime(created_at/1000)) %>%
-  mutate(weekday = wday(date)) %>%
-  filter(hour(date) >= 10 ) %>%
-  filter(hour(date) < 16) # filter tweets made between 6pm - 12am
+  filter(hour(date) >= 18) # filter igs made between 6pm - 12am
 ```
   
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 # convert to sp points and polygon
 tweets <- drop_na(t_time1)
 # p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
@@ -440,7 +418,7 @@ ggplotly(p, tooltip = "text") %>%
   )
 ```
   
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 # convert to sp points and polygon
 tweets <- drop_na(t_time2)
 # p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
@@ -540,7 +518,7 @@ ggplotly(p, tooltip = "text") %>%
   )
 ```
   
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 # convert to sp points and polygon
 tweets <- drop_na(t_time3)
 # p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
@@ -640,7 +618,7 @@ ggplotly(p, tooltip = "text") %>%
   )
 ```
   
-```{r echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
 # convert to sp points and polygon
 tweets <- drop_na(t_time4)
 # p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
