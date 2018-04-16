@@ -95,46 +95,6 @@ function(input, output, session) {
   })
 
   output$paPlots <- renderPlotly({
-    # TODO: Just load a Rmd file?
-    load("plots/hex.sent") # This is for Twitter / Instagram hex data
-
-    # Plot Twitter hex sentiment
-    p <- ggplot() +
-      geom_sf(data = hex.sent, aes(fill=t.norm, geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
-      theme_void() +
-      coord_sf() +
-      scale_fill_viridis(
-        breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-        name="Normalized Sentiment",
-        guide=guide_legend(
-          keyheight = unit(3, units = "mm"),
-          keywidth=unit(12, units = "mm"),
-          label.position = "bottom",
-          title.position = 'top',
-          nrow=1)) +
-      labs(
-        title = "Twitter Sentiments in Singapore",
-        subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-        caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-      ) +
-      theme(
-        text = element_text(color = "#22211d"), 
-        plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-        panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-        legend.background = element_rect(fill = "#f5f5f2", color = NA),
-        plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-        plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-        plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-        legend.position = c(0.7, 0.09),
-        panel.grid.major = element_line(colour = 'transparent'), 
-        panel.grid.minor = element_line(colour = 'transparent')
-      )
-
-    ggplotly(p, tooltip = "text") %>%
-      highlight(
-        "plotly_hover",
-        opacityDim = 1
-      )
   })
 
   output$sliderOutput <- renderUI({

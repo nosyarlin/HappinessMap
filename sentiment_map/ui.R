@@ -19,10 +19,8 @@ navbarPage("Social Media Sentiment in Singapore",
       )
     )
   ),
-  tabPanel("Planning Area",
-    mainPanel(
-      plotlyOutput('paPlots', width="100%")
-    )
+  tabPanel("Case Studies",
+    includeHTML("case_studies.html")
   ),
   tabPanel("About",
     includeMarkdown("about.md")
