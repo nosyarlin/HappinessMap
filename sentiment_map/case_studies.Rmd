@@ -22,6 +22,16 @@ load("plots/insta.pa.sent") # Instagram planning area level data
 load("plots/richpoor.sent") # Rich / poor data
 ```
 
+```{r}
+tweets.sf <- mutate(tweets.sf, sent=pos-neg)
+ggplot(tweets.sf, aes(sent)) + geom_histogram() + ggtitle("Sentiment of Tweets, Kurtosis = 2.728617") + scale_x_continuous(limits=c(0,1.0))
+```
+```{r}
+insta.sf <- mutate(insta.sf, sent=pos-neg)
+ggplot(insta.sf, aes(sent)) + geom_histogram() + ggtitle("Sentiment of Instagram Posts, Kurtosis = 3.14983") + scale_x_continuous(limits=c(0,1.0))
+```
+
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
   geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
