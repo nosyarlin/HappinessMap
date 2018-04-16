@@ -11,6 +11,7 @@ library(rgdal)
 library(spatstat)
 library(sf)
 library(viridis)
+library(classInt)
 ```
 
 
@@ -23,17 +24,21 @@ load("plots/richpoor.sent") # Rich / poor data
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+class_int <- classIntervals(twitter.pa.sent$norm, n = 4, style = "jenks")
+rounded <- round(class_int$brks,3)
+rounded[1] <- 0 
+
 p <- ggplot() +
-  geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, class_int$brks), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
     name="Normalized Sentiment",
     discrete = T,
+    labels = c(rounded),
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(18, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
       nrow=1)) +
@@ -44,36 +49,44 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA),
+    panel.background = element_rect(fill = "#ffffff", color = NA),
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 0, unit = "cm")),
+    legend.position = c(0.81, 0.09),
     panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-ggplotly(p, tooltip = "text") %>%
- highlight(
-   "plotly_hover",
-   opacityDim = 1
- )
+p
+# ggplotly(p, tooltip = "text") %>%
+#  highlight(
+#    "plotly_hover",
+#    opacityDim = 1
+#  ) %>%
+#   layout(legend = list(
+#     orientation = 'h',
+#     x = 0.1,
+#     y = 0.1,
+#     title = "Normalized Sentiment"))
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+class_int <- classIntervals(insta.pa.sent$norm, n = 4, style = "jenks")
+rounded <- round(class_int$brks,3)
+rounded[1] <- 0
+
 p <- ggplot() +
-  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, class_int$brks), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
     name="Normalized Sentiment",
     discrete = T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(18, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
       nrow=1)) +
@@ -84,37 +97,32 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA),
+    panel.background = element_rect(fill = "#ffffff", color = NA),
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.81, 0.09),
     panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
 p
-#ggplotly(p, tooltip = "text") %>%
-#  highlight(
-#    "plotly_hover",
-#    opacityDim = 1
-#  )
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-hex.breaks = c(-0.4,0.25,0.3,0.35,0.43,1)
+class_int <- classIntervals(hex.sent$t.norm, n = 5, style = "jenks")
+rounded <- round(class_int$brks,3)
+
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=cut(t.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(t.norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=hex.breaks,
     name="Normalized Sentiment",
     discrete=T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
+      keyheight = unit(2, units = "mm"),
       keywidth=unit(12, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
@@ -126,36 +134,32 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
     panel.grid.major = element_line(colour = 'transparent'), 
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
 p
-#ggplotly(p, tooltip = "text") %>%
-#  highlight(
-#    "plotly_hover",
-#    opacityDim = 1
-#  )
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+class_int <- classIntervals(hex.sent$i.norm, n = 5, style = "jenks")
+rounded <- round(class_int$brks,3)
+
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=cut(i.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(i.norm, class_int$brks, include.lowest = TRUE), geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=hex.breaks,
     name="Normalized Sentiment",
     discrete=T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
+      keyheight = unit(2, units = "mm"),
       keywidth=unit(12, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
@@ -167,13 +171,11 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.79, 0.09),
     panel.grid.major = element_line(colour = 'transparent'), 
     panel.grid.minor = element_line(colour = 'transparent')
   )
@@ -220,7 +222,11 @@ p <- ggplot() +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-p
+ggplotly(p, tooltip = "text") %>%
+ highlight(
+   "plotly_hover",
+   opacityDim = 1
+ )
 ```
 
 
@@ -256,6 +262,10 @@ p <- ggplot(polygons.sf) +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-ggplotly(p)
+ggplotly(p, tooltip = "text") %>%
+ highlight(
+   "plotly_hover",
+   opacityDim = 1
+ )
 ```
 
