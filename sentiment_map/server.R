@@ -7,19 +7,18 @@ library(viridis)
 
 function(input, output, session) {
   # read in files
-  sent_tweets <- read_csv("emoji_trunc.csv")
-  sent_tweets <- drop_na(sent_tweets)
+  load("plots/sent_tweets")
+  load("plots/sent_insta")
+  # sent_tweets <- read_csv("emoji_trunc.csv")
+  # sent_tweets <- drop_na(sent_tweets)
+  # save(sent_tweets, file="sent_tweets")
 
-  sent_insta <- read_csv("instagram_trunc.csv")
-  sent_insta <- drop_na(sent_insta)
+  # sent_insta <- read_csv("instagram_trunc.csv")
+  # sent_insta <- drop_na(sent_insta)
+  # save(sent_insta, file="sent_insta")
 
-  # Load tweet sentiment for planning area
-  # reloaded <- st_read("plots/tweet_sentiment_pa.kml")
-  # reloaded <- st_as_sf(reloaded)
-  # reloaded$norm=as.numeric(levels(reloaded$norm))[reloaded$norm]
-
-  # sg.st <- st_read("planning_area.kml")
-  # sg.sf <- st_as_sf(sg.st)
+  sg.st <- st_read("planning_area.kml")
+  sg.sf <- st_as_sf(sg.st)
 
   dataset <- reactive({
     if(input$dataset == "Twitter") {
@@ -43,7 +42,7 @@ function(input, output, session) {
       plotData$sent;
     }
     else if(input$sent == "Count") {
-      matrix(1, length(plotData$sent))
+      as.vector(matrix(1, length(plotData$sent)))
     }
   })
 
@@ -77,24 +76,31 @@ function(input, output, session) {
     )
   })
 
-  output$plot1 <- renderPlotly({
+  output$plotInteractive <- renderPlotly({
     plotData <- dateRange()
-    p <- ggplot() +
-      # geom_sf(data=sg.sf) +
-      stat_summary_hex(data=plotData, aes(x=plotData$lon, y=plotData$lat, z=selectedData(), group=1), binwidth=binSize(), drop=TRUE, fun=function(x) if(length(x) > minPosts()) {func()(x)} else {NA}) + coord_fixed() +
-      scale_fill_viridis(
-      guide=guide_legend(
-        keyheight = unit(3, units = "mm"),
-        keywidth=unit(12, units = "mm"),
-        label.position = "bottom",
-        title.position = 'top',
-        nrow=1)) +
-      scale_x_continuous(limits = c(103.6, 104)) + scale_y_continuous(limits = c(1.21, 1.49))
+    p <- ggplot(data=plotData, aes(x=plotData$lon, y=plotData$lat, z=selectedData(), group=1), stat="identity") +
+      stat_summary_hex(aes(text = paste0(input$sent, ": ", selectedData())),
+        binwidth=binSize(), drop=TRUE, show.legend=T, fun=function(x) if(length(x) > minPosts()) {func()(x)} else {NA}) + coord_fixed() +
+      scale_fill_viridis(name=input$sent) +
+      labs(x="Longitude", y="Latitude") +
+      scale_x_continuous(limits = c(103.6, 104)) + scale_y_continuous(limits = c(1.17, 1.48)) +
+      theme(
+        text = element_text(color = "#22211d"), 
+        legend.position = c(0.7, 0.09),
+        plot.background = element_rect(fill = "#FFFFFF", color = NA),
+        panel.background = element_rect(fill = "#FFFFFF", color = NA),
+        legend.background = element_rect(fill = "#FFFFFF", color = NA),
+        panel.grid.major = element_line(colour = 'transparent'), 
+        panel.grid.minor = element_line(colour = 'transparent')
+      )
 
-    ggplotly(p)
-  })
+    # p
 
-  output$paPlots <- renderPlotly({
+    ggplotly(p, tooltip = "text") %>%
+     highlight(
+       "plotly_hover",
+       opacityDim = 1
+     )
   })
 
   output$sliderOutput <- renderUI({
