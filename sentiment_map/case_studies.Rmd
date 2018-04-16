@@ -4,7 +4,7 @@ output:
   html_document:
     df_print: paged
 ---
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(plotly)
 library(rgdal)
@@ -14,7 +14,7 @@ library(viridis)
 ```
 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Load hex.sent
 load("plots/hex.sent") # Twitter / Instagram hex level data
 load("plots/twitter.pa.sent") # Twitter planning area level data
@@ -22,7 +22,7 @@ load("plots/insta.pa.sent") # Instagram planning area level data
 load("plots/richpoor.sent") # Rich / poor data
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
   geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
@@ -38,7 +38,7 @@ p <- ggplot() +
       title.position = 'top',
       nrow=1)) +
   labs(
-    title = "Sentiments of Singaporeans in Different Planning Zones",
+    title = "Twitter Sentiments in Different Planning Zones",
     subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
     caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
   ) +
@@ -55,21 +55,20 @@ p <- ggplot() +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-p
-#ggplotly(p, tooltip = "text") %>%
-#  highlight(
-#    "plotly_hover",
-#    opacityDim = 1
-#  )
+ggplotly(p, tooltip = "text") %>%
+ highlight(
+   "plotly_hover",
+   opacityDim = 1
+ )
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
-  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, c(0,0.25,0.4,0.415,0.43,0.46,0.5)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.4,0.415,0.43,0.46),
+    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
     name="Normalized Sentiment",
     discrete = T,
     guide=guide_legend(
@@ -79,7 +78,7 @@ p <- ggplot() +
       title.position = 'top',
       nrow=1)) +
   labs(
-    title = "Instagram Sentiments of Singaporeans in Different Planning Zones",
+    title = "Instagram Sentiment in Different Planning Zones",
     subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
     caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
   ) +
@@ -104,14 +103,16 @@ p
 #  )
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+hex.breaks = c(-0.4,0.25,0.3,0.35,0.43,1)
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=t.norm, geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(t.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
+    breaks=hex.breaks,
     name="Normalized Sentiment",
+    discrete=T,
     guide=guide_legend(
       keyheight = unit(3, units = "mm"),
       keywidth=unit(12, units = "mm"),
@@ -144,14 +145,15 @@ p
 #  )
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=i.norm, geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(i.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
+    breaks=hex.breaks,
     name="Normalized Sentiment",
+    discrete=T,
     guide=guide_legend(
       keyheight = unit(3, units = "mm"),
       keywidth=unit(12, units = "mm"),
@@ -179,18 +181,19 @@ p <- ggplot() +
 p
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 hex.sent.odds <- hex.sent
 hex.sent.odds[hex.sent.odds$odds == 0,]$odds <- NA
+hex.sent.odds[hex.sent.odds$i.count < 10,]$odds <- NA
+hex.sent.odds[hex.sent.odds$t.count < 10,]$odds <- NA
 
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(odds, c(0,0.3,0.6,1,1.5,3)), geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
   theme_void() +
   coord_sf() +
-  scale_fill_distiller(
+  scale_fill_brewer(
     palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
+    # breaks=c(0,0.3,0.6,1,1.5,2),
     na.value="grey",
     name="Odds Ratio",
     guide=guide_legend(
@@ -221,7 +224,7 @@ p
 ```
 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot(polygons.sf) +
   geom_sf(aes(fill = norm, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
