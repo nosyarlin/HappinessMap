@@ -61,7 +61,11 @@ ggplotly(p, tooltip = "text") %>%
    opacityDim = 1
  )
 ```
+From this map, we can see that people are the happiest around Sentosa, Marina Bay and Sungei Boloh Wetland reserve from the tweets. This makes sense as they are tourist attractions and are more likely visited by people for recreation. People tend to post tweets of enjoyment in their trips.
 
+We can also tell that industrial islands in the south of Singapore are the least happy places. This could be the fact that people visiting the islands are likely there for mundane/tough industrial work, and tend to tweet about negative moods.
+
+We can also see that the central of Singapore is slightly happier than the outskirts of the country. This may be due to the fact that the central of Singapore is bustling with more recreational activities and night-life. Tourists also tend to mainly explore the central regions of Singapore. This can result in more positive posts towards the centre of Singapore.
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
   geom_sf(data = insta.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
@@ -102,7 +106,11 @@ p
 #    opacityDim = 1
 #  )
 ```
+There are no posts in Tekong Island as posts about any military activity or facilities are prohibited.
 
+We can see from this map that the East and Central are generally happier than the West of Singapore. This is apparent in regions like Tuas, the industrial islands and Lim Chu Kang. This can be due to the fact that they contain big parts of industrial factories, farmlands, cemetaries and forests. This can result in more negative posts.
+
+The happiest areas are Punggol, Pasir Ris, Tanglin, Marina Bay and Ang Mo Kio, Changi Bay. This can be a result of higher recreational activities in these areas. Pasir Ris and Punggol have many parks, Tanglin has shopping centre and Botanical Gardens, Marina Bay is a tourist attraction and Ang Mo Kio has night-life and food places.
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 hex.breaks = c(-0.4,0.25,0.3,0.35,0.43,1)
 p <- ggplot() +
