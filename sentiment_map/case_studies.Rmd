@@ -11,6 +11,7 @@ library(rgdal)
 library(spatstat)
 library(sf)
 library(viridis)
+library(classInt)
 ```
 
 
@@ -22,18 +23,32 @@ load("plots/insta.pa.sent") # Instagram planning area level data
 load("plots/richpoor.sent") # Rich / poor data
 ```
 
+```{r}
+tweets.sf <- mutate(tweets.sf, sent=pos-neg)
+ggplot(tweets.sf, aes(sent)) + geom_histogram() + ggtitle("Sentiment of Tweets, Kurtosis = 2.728617") + scale_x_continuous(limits=c(0,1.0))
+```
+```{r}
+insta.sf <- mutate(insta.sf, sent=pos-neg)
+ggplot(insta.sf, aes(sent)) + geom_histogram() + ggtitle("Sentiment of Instagram Posts, Kurtosis = 3.14983") + scale_x_continuous(limits=c(0,1.0))
+```
+
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+class_int <- classIntervals(twitter.pa.sent$norm, n = 4, style = "jenks")
+rounded <- round(class_int$brks,3)
+rounded[1] <- 0 
+
 p <- ggplot() +
-  geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, class_int$brks), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
     name="Normalized Sentiment",
     discrete = T,
+    labels = c(rounded),
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(18, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
       nrow=1)) +
@@ -44,22 +59,26 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA),
+    panel.background = element_rect(fill = "#ffffff", color = NA),
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 0, unit = "cm")),
+    legend.position = c(0.81, 0.09),
     panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-ggplotly(p, tooltip = "text") %>%
- highlight(
-   "plotly_hover",
-   opacityDim = 1
- )
+p
+# ggplotly(p, tooltip = "text") %>%
+#  highlight(
+#    "plotly_hover",
+#    opacityDim = 1
+#  ) %>%
+#   layout(legend = list(
+#     orientation = 'h',
+#     x = 0.1,
+#     y = 0.1,
+#     title = "Normalized Sentiment"))
 ```
 From this map, we can see that people are the happiest around Sentosa, Marina Bay and Sungei Boloh Wetland reserve from the tweets. This makes sense as they are tourist attractions and are more likely visited by people for recreation. People tend to post tweets of enjoyment in their trips.
 
@@ -67,17 +86,21 @@ We can also tell that industrial islands in the south of Singapore are the least
 
 We can also see that the central of Singapore is slightly happier than the outskirts of the country. This may be due to the fact that the central of Singapore is bustling with more recreational activities and night-life. Tourists also tend to mainly explore the central regions of Singapore. This can result in more positive posts towards the centre of Singapore.
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+class_int <- classIntervals(insta.pa.sent$norm, n = 4, style = "jenks")
+rounded <- round(class_int$brks,3)
+rounded[1] <- 0
+
 p <- ggplot() +
-  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, class_int$brks), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
     name="Normalized Sentiment",
     discrete = T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(18, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
       nrow=1)) +
@@ -88,23 +111,16 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA),
+    panel.background = element_rect(fill = "#ffffff", color = NA),
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.81, 0.09),
     panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
 p
-#ggplotly(p, tooltip = "text") %>%
-#  highlight(
-#    "plotly_hover",
-#    opacityDim = 1
-#  )
 ```
 There are no posts in Tekong Island as posts about any military activity or facilities are prohibited.
 
@@ -112,17 +128,19 @@ We can see from this map that the East and Central are generally happier than th
 
 The happiest areas are Punggol, Pasir Ris, Tanglin, Marina Bay and Ang Mo Kio, Changi Bay. This can be a result of higher recreational activities in these areas. Pasir Ris and Punggol have many parks, Tanglin has shopping centre and Botanical Gardens, Marina Bay is a tourist attraction and Ang Mo Kio has night-life and food places.
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-hex.breaks = c(-0.4,0.25,0.3,0.35,0.43,1)
+class_int <- classIntervals(hex.sent$t.norm, n = 5, style = "jenks")
+rounded <- round(class_int$brks,3)
+
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=cut(t.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(t.norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=hex.breaks,
     name="Normalized Sentiment",
     discrete=T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
+      keyheight = unit(2, units = "mm"),
       keywidth=unit(12, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
@@ -134,36 +152,32 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
     panel.grid.major = element_line(colour = 'transparent'), 
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
 p
-#ggplotly(p, tooltip = "text") %>%
-#  highlight(
-#    "plotly_hover",
-#    opacityDim = 1
-#  )
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+class_int <- classIntervals(hex.sent$i.norm, n = 5, style = "jenks")
+rounded <- round(class_int$brks,3)
+
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=cut(i.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(i.norm, class_int$brks, include.lowest = TRUE), geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=hex.breaks,
     name="Normalized Sentiment",
     discrete=T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
+      keyheight = unit(2, units = "mm"),
       keywidth=unit(12, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
@@ -175,13 +189,11 @@ p <- ggplot() +
   ) +
   theme(
     text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.79, 0.09),
     panel.grid.major = element_line(colour = 'transparent'), 
     panel.grid.minor = element_line(colour = 'transparent')
   )
@@ -228,7 +240,11 @@ p <- ggplot() +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-p
+ggplotly(p, tooltip = "text") %>%
+ highlight(
+   "plotly_hover",
+   opacityDim = 1
+ )
 ```
 
 
@@ -264,6 +280,10 @@ p <- ggplot(polygons.sf) +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-ggplotly(p)
+ggplotly(p, tooltip = "text") %>%
+ highlight(
+   "plotly_hover",
+   opacityDim = 1
+ )
 ```
 

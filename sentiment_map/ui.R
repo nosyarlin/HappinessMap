@@ -13,17 +13,16 @@ navbarPage("Social Media Sentiment in Singapore",
                      min = 0, max = 1000),
         width=3
       ),
-      mainPanel(
-        plotlyOutput('plot1', width="100%", height="500px"),
+      mainPanel(align="center",
+        plotlyOutput('plotInteractive', width="100%", height="500px"),
+        br(),
         uiOutput("sliderOutput", width="100%")
       )
     )
   ),
-  tabPanel("Planning Area",
-    mainPanel(
-      plotlyOutput('paPlots', width="100%")
-    )
-  ),
+  # tabPanel("Case Studies",
+  #   includeHTML("case_studies.html")
+  # ),
   tabPanel("About",
     includeMarkdown("about.md")
   )
