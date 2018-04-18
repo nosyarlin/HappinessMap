@@ -116,9 +116,9 @@ function(input, output, session) {
     rounded <- rounded[order(rounded)]
     rounded <- round(rounded, 3)
 
-    # tampines <- get_map("Singapore-Tampines", zoom = 14, maptype = "toner-lines")
+    tampines <- get_map("Singapore-Tampines", zoom = 14, maptype = "toner-lines")
 
-    p <- ggplot() + #ggmap(tampines) +
+    p <- ggmap(tampines) +
       geom_sf(data = polygons.sf,
               aes(fill = factor(norm), text = paste0(Name, "\n", "Sentiment: ", round(norm,2))),
               lwd = 0, 
