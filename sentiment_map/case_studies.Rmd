@@ -6,13 +6,17 @@ output:
 ---
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
-library(plotly)
-library(rgdal)
-library(spatstat)
+library(lubridate)
+library(sp)
 library(sf)
+library(raster)
+library(rgeos)
+library(rgdal)
 library(viridis)
-library(classInt)
-library(ggmap)
+library(gridExtra)
+library(rasterVis)
+require(spatialEco)
+library(plotly)
 ```
 
 
