@@ -47,14 +47,11 @@ make_grid <- function(x, cell_diameter, cell_area, clip = FALSE) {
 }
     
 # read in files
-tweets <- read_csv("emoji_trunc.csv")
+tweets <- invisible(read_csv("emoji_trunc.csv"))
 tweets <- tweets %>%
   mutate(date = as_datetime(created_at/1000, tz = "Asia/Singapore")) %>%
   mutate(weekday = wday(date))
-insta <- read_csv("instagram_trunc.csv")
-insta <- insta %>%
-  mutate(date = as_datetime(created_at/1000, tz = "Asia/Singapore")) %>%
-  mutate(weekday = wday(date))
+insta <- invisible(read_csv("instagram_trunc.csv"))
 shape <- invisible(readOGR(dsn = 'sg-shape', layer ='sg-all'))
 shape <- gBuffer(shape, byid=TRUE, width=0) # clean up polygons
 ```
