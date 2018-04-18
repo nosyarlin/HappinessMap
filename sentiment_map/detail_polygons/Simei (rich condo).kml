@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Folder><name>Simei__rich_condo_</name>
+  <Placemark>
+  	<name>Simei Condo</name>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><outerBoundaryIs><LinearRing><coordinates>103.953050673122,1.34161722145342 103.954884807799,1.34316472567038 103.956763284193,1.34095630789571 103.95815803276,1.34202424739707 103.959133550544,1.34067018062941 103.956505296018,1.33932014307678 103.9557192383,1.34030748404659 103.954598602168,1.34180662957423 103.953276412774,1.34111347637988 103.953050673122,1.34161722145342</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+</Folder>
+</Document></kml>

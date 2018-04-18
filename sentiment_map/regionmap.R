@@ -7,10 +7,27 @@ library(plotly)
 
 # read in files
 tweets <- read_csv("emoji_trunc.csv")
+insta <- read_csv("instagram_trunc.csv")
 shape <- readOGR(dsn = 'sg-shape', layer ='sg-all')
 kml <- st_read("planning_area.kml")
 
 # convert to sf points and polygon
+insta <- drop_na(insta)
+insta.sf <- st_as_sf(insta, coords = c('lon','lat'), crs = 4326)
+
+# points in polygon
+i.join <- st_join(insta.sf, kml, join = st_within)
+i.join.df <- as.data.frame(i.join)
+i.join.summary <- i.join.df %>% group_by(Name) %>% summarise(count = n(), pos = sum(pos), neg = sum(neg), neu = sum(neu)) 
+i.join.summary <- i.join.summary %>% select('count', 'pos', 'neg', 'neu', 'Name') %>% drop_na()
+
+i.kml.data <- merge(i.join.summary, kml, by = "Name") %>% st_as_sf()
+i.kml.data <- st_as_sf(i.kml.data)
+i.kml.data <- i.kml.data %>% mutate(norm = (pos-neg)/count)
+
+insta.pa.sent <- i.kml.data
+save(insta.pa.sent, file="insta.pa.sent")
+
 tweets <- drop_na(tweets)
 tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs = 4326)
 
@@ -24,13 +41,19 @@ kml.data <- merge(join.summary, kml, by = "Name") %>% st_as_sf()
 kml.data <- st_as_sf(kml.data)
 kml.data <- kml.data %>% mutate(norm = (pos-neg)/count)
 
+twitter.pa.sent <- kml.data
+save(twitter.pa.sent, file="twitter.pa.sent")
+
+a <- rbind(twitter.pa.sent, insta.pa.sent)
+  
 p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill = (pos-neg)/count, geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  geom_sf(data = kml.data, aes(fill = cut((pos-neg)/count, c(0,0.25,0.4,0.415,0.43,0.46,0.5)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
+    breaks=c(0,0.25,0.4,0.415,0.43,0.46),
     name="Normalized Sentiment",
+    discrete = T,
     guide=guide_legend(
       keyheight = unit(3, units = "mm"),
       keywidth=unit(12, units = "mm"),
@@ -54,6 +77,18 @@ p <- ggplot() +
     panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
   )
+
+p
+
+  
+#ggplotly(p, tooltip = "text") %>%
+#  highlight(
+#    "plotly_hover",
+#    opacityDim = 1
+#  )
+
+#st_write(kml.data, "tweet_sentiment_pa.csv")
+
   
 ggplotly(p, tooltip = "text") %>%
   highlight(
@@ -62,3 +97,4 @@ ggplotly(p, tooltip = "text") %>%
   )
 
 st_write(kml.data, "tweet_sentiment_pa.csv")
+

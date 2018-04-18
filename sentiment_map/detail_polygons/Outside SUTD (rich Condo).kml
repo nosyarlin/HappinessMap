@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Folder><name>Outside_SUTD__rich_landed_</name>
+  <Placemark>
+  	<name>Simei Landed</name>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><outerBoundaryIs><LinearRing><coordinates>103.961989560255,1.34271236288536 103.963710825106,1.34816086051941 103.964267112106,1.34803190213623 103.964363857672,1.34828981889577 103.965008828107,1.34811653107597 103.96406152778,1.345041677712 103.964762933129,1.34481600024815 103.963263376866,1.34273654263546 103.961989560255,1.34271236288536</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+</Folder>
+</Document></kml>

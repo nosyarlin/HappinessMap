@@ -4,7 +4,7 @@ output:
   html_document:
     df_print: paged
 ---
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(plotly)
 library(rgdal)
@@ -14,21 +14,113 @@ library(viridis)
 ```
 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Load hex.sent
-load("plots/hex.sent") # This is for Twitter / Instagram hex data
+load("plots/hex.sent") # Twitter / Instagram hex level data
+load("plots/twitter.pa.sent") # Twitter planning area level data
+load("plots/insta.pa.sent") # Instagram planning area level data
+load("plots/richpoor.sent") # Rich / poor data
 ```
 
-
-
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=t.norm, geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
+  geom_sf(data = twitter.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
     breaks=c(0,0.25,0.3,0.35,0.4,0.45),
     name="Normalized Sentiment",
+    discrete = T,
+    guide=guide_legend(
+      keyheight = unit(3, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Twitter Sentiments in Different Planning Zones",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#f5f5f2", color = NA),
+    panel.background = element_rect(fill = "#f5f5f2", color = NA),
+    legend.background = element_rect(fill = "#f5f5f2", color = NA),
+    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
+    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
+    legend.position = c(0.7, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'),
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+ggplotly(p, tooltip = "text") %>%
+ highlight(
+   "plotly_hover",
+   opacityDim = 1
+ )
+```
+From this map, we can see that people are the happiest around Sentosa, Marina Bay and Sungei Boloh Wetland reserve from the tweets. This makes sense as they are tourist attractions and are more likely visited by people for recreation. People tend to post tweets of enjoyment in their trips.
+
+We can also tell that industrial islands in the south of Singapore are the least happy places. This could be the fact that people visiting the islands are likely there for mundane/tough industrial work, and tend to tweet about negative moods.
+
+We can also see that the central of Singapore is slightly happier than the outskirts of the country. This may be due to the fact that the central of Singapore is bustling with more recreational activities and night-life. Tourists also tend to mainly explore the central regions of Singapore. This can result in more positive posts towards the centre of Singapore.
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+p <- ggplot() +
+  geom_sf(data = insta.pa.sent, aes(fill = cut(norm, c(0,0.25,0.3,0.35,0.4,0.45)), geometry = geometry, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
+    name="Normalized Sentiment",
+    discrete = T,
+    guide=guide_legend(
+      keyheight = unit(3, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Instagram Sentiment in Different Planning Zones",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#f5f5f2", color = NA),
+    panel.background = element_rect(fill = "#f5f5f2", color = NA),
+    legend.background = element_rect(fill = "#f5f5f2", color = NA),
+    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
+    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
+    legend.position = c(0.7, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'),
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+p
+#ggplotly(p, tooltip = "text") %>%
+#  highlight(
+#    "plotly_hover",
+#    opacityDim = 1
+#  )
+```
+There are no posts in Tekong Island as posts about any military activity or facilities are prohibited.
+
+We can see from this map that the East and Central are generally happier than the West of Singapore. This is apparent in regions like Tuas, the industrial islands and Lim Chu Kang. This can be due to the fact that they contain big parts of industrial factories, farmlands, cemetaries and forests. This can result in more negative posts.
+
+The happiest areas are Punggol, Pasir Ris, Tanglin, Marina Bay and Ang Mo Kio, Changi Bay. This can be a result of higher recreational activities in these areas. Pasir Ris and Punggol have many parks, Tanglin has shopping centre and Botanical Gardens, Marina Bay is a tourist attraction and Ang Mo Kio has night-life and food places.
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+hex.breaks = c(-0.4,0.25,0.3,0.35,0.43,1)
+p <- ggplot() +
+  geom_sf(data = hex.sent, aes(fill=cut(t.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    breaks=hex.breaks,
+    name="Normalized Sentiment",
+    discrete=T,
     guide=guide_legend(
       keyheight = unit(3, units = "mm"),
       keywidth=unit(12, units = "mm"),
@@ -60,15 +152,20 @@ p
 #    opacityDim = 1
 #  )
 ```
+There are likely no posts within South of the Upper Seletar Reservoir as it is mainly vegetation.
 
-```{r}
+From this map, we can see that Tekong, Lim Chu Kang Road, Tuas, the industrial islands and Tanah Merah Coast Road are the least happy areas. We know from the previous map that there are actually twitter posts in Tekong. Tweets in Tekong could be unhappy as the National Service Forces or National Service Men dread serving in the military. For Tanah Merah Coast Road, Tuas and industrial islands, people could be unhappy during their working hours. Lim Chu Kang Road has many cemetaries and forested area, and this could mean generally more negative tweets.
+
+We can also see that areas like Bukit Timah Nature Reserve, Marina Bay, Sentosa and Sungei Boloh Wetland Reserve are the happiest. This is because they are prime recreational areas for both tourists and locals. 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=i.norm, geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(i.norm, hex.breaks), geometry=geometry, text=paste0("Sentiment: ", i.norm)), lwd=0) + 
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
+    breaks=hex.breaks,
     name="Normalized Sentiment",
+    discrete=T,
     guide=guide_legend(
       keyheight = unit(3, units = "mm"),
       keywidth=unit(12, units = "mm"),
@@ -95,19 +192,22 @@ p <- ggplot() +
 
 p
 ```
+From this map, we can see that Tuas, Lim Chu Kang Road, Tekong, Jurong Island, Woodlands, Yishun, Pulau Ubin and Changi Airport are the least happy. This map supports the inferences from the tweets data in areas like Tuas, Jurong Island, Lim Chu Kang Road and Tekong. given that these are data from two different social media platforms, the inferences seem to be justified. There are also some similarities in the rest of the areas that are least happy wen compared to the tweets data (other than Changi Airport).
 
-```{r}
+When we compare Instagram to Twitter, we can see that posts on Instagram are generally happier. This can be due to the nature of Instagram where more photos are being shared instead of just posting a mood. This can mean that people tend to post less unhappy posts on Instagram as they may not want to blatantly show their negative moods. Twitter on the other hand mainly uses text posts where it appears less expressive. People can just post a simple caption or statement to express their mood in a more subtle manner.
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 hex.sent.odds <- hex.sent
 hex.sent.odds[hex.sent.odds$odds == 0,]$odds <- NA
+hex.sent.odds[hex.sent.odds$i.count < 10,]$odds <- NA
+hex.sent.odds[hex.sent.odds$t.count < 10,]$odds <- NA
 
 p <- ggplot() +
-  geom_sf(data = hex.sent, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
+  geom_sf(data = hex.sent, aes(fill=cut(odds, c(0,0.3,0.6,1,1.5,3)), geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
   theme_void() +
   coord_sf() +
-  scale_fill_distiller(
+  scale_fill_brewer(
     palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
+    # breaks=c(0,0.3,0.6,1,1.5,2),
     na.value="grey",
     name="Odds Ratio",
     guide=guide_legend(
@@ -136,4 +236,40 @@ p <- ggplot() +
 
 p
 ```
+From this map, we can see that posts in Twitter are generally less happy than Instagram. There are more Red and orange than green and blue. This means that the happiness score on twitter is generally lower than facebook, resulting in low odds ratio. 
 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+p <- ggplot(polygons.sf) +
+  geom_sf(aes(fill = norm, text = paste0(Name, "\n", "Sentiment: ", norm)), lwd = 0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    breaks=c(0,0.25,0.4,0.415,0.43,0.46),
+    name="Normalized Sentiment",
+    guide=guide_legend(
+      keyheight = unit(3, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Sentiments of Singaporeans Living in Different Housing Types",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#f5f5f2", color = NA),
+    panel.background = element_rect(fill = "#f5f5f2", color = NA),
+    legend.background = element_rect(fill = "#f5f5f2", color = NA),
+    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
+    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
+    legend.position = c(0.7, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'),
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+ggplotly(p)
+```
+From this map, we can see that people living in landed properties are generally the happiest, followed by condo owners, and finally HDB flat owners. This could be a good indication of the correlation between wealth and happiness. People living in private estates represent wealthier families and are actually happier than less well-off Singaporeans. However, the sample size is relatively small. While the data is interesting and supports the intuitive correlation between wealth and happiness, more investigation is needed. This is a good starting point in opening up a thesis for social research on wealth and happiness nonetheless.
