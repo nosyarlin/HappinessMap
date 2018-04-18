@@ -4,7 +4,7 @@ navbarPage("Social Media Sentiment in Singapore",
   tabPanel("Case Studies", align="center",
     includeHTML("case_studies.html"),
     br(),
-    plotlyOutput("richpoorPlot", width="60%"),
+    plotlyOutput("richpoorPlot", width="60%", height="600"),
     includeMarkdown("richpoor.md")
   ),
   tabPanel("Explore",
