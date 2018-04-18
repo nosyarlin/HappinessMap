@@ -1,8 +1,11 @@
 library(plotly)
 
 navbarPage("Social Media Sentiment in Singapore",
-  tabPanel("Case Studies",
-    includeHTML("case_studies.html")
+  tabPanel("Case Studies", align="center",
+    includeHTML("case_studies.html"),
+    br(),
+    plotlyOutput("richpoorPlot", width="60%"),
+    includeMarkdown("richpoor.md")
   ),
   tabPanel("Explore",
     sidebarLayout(
