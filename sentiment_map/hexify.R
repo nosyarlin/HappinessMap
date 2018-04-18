@@ -1,4 +1,5 @@
 library(tidyverse)
+library(lubridate)
 library(sp)
 library(sf)
 library(raster)
@@ -28,7 +29,7 @@ make_grid <- function(x, cell_diameter, cell_area, clip = FALSE) {
                 offset = c(0.5, 0.5))
   # convert center points to hexagons
   g <- HexPoints2SpatialPolygons(g, dx = cell_diameter)
-  # clip to boundary of study area
+  # clip to boundary of study area,.
   if (clip) {
     g <- gIntersection(g, x, byid = TRUE)
   } else {
@@ -95,23 +96,11 @@ kml.data[!is.finite(kml.data$odds),]$odds <- 0
 ggplot(kml.data) + geom_histogram(aes(x=odds), bins=30)
 
 p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill=t.norm, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
+  geom_sf(data = kml.data, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
   theme_void() +
   coord_sf() +
-  scale_fill_viridis(
-    breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-    name="Normalized Sentiment",
-    guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  # scale_fill_distiller(
-  #   palette="Spectral",
-  #   limits=c(0,2),
-  #   breaks=c(0,0.3,0.6,1,1.5,2),
-  #   na.value="grey",
+  # scale_fill_viridis(
+  #   breaks=c(0,0.25,0.3,0.35,0.4,0.45),
   #   name="Normalized Sentiment",
   #   guide=guide_legend(
   #     keyheight = unit(3, units = "mm"),
@@ -119,6 +108,18 @@ p <- ggplot() +
   #     label.position = "bottom",
   #     title.position = 'top',
   #     nrow=1)) +
+  scale_fill_distiller(
+    palette="Spectral",
+    limits=c(0,2),
+    breaks=c(0,0.3,0.6,1,1.5,2),
+    na.value="grey",
+    name="Normalized Sentiment",
+    guide=guide_legend(
+      keyheight = unit(3, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
   labs(
     title = "Social Media Sentiments in Singapore",
     subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
