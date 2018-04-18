@@ -1,7 +1,10 @@
 library(plotly)
 
 navbarPage("Social Media Sentiment in Singapore",
-  tabPanel("Interactive",
+  tabPanel("Case Studies",
+    includeHTML("case_studies.html")
+  ),
+  tabPanel("Explore",
     sidebarLayout(
       sidebarPanel(
         selectInput('dataset', 'Data', c("Twitter", "Instagram"), selected="Twitter"),
@@ -20,9 +23,6 @@ navbarPage("Social Media Sentiment in Singapore",
       )
     )
   ),
-  # tabPanel("Case Studies",
-  #   includeHTML("case_studies.html")
-  # ),
   tabPanel("About",
     includeMarkdown("about.md")
   )

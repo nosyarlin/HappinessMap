@@ -9,6 +9,12 @@ function(input, output, session) {
   # read in files
   load("plots/sent_tweets")
   load("plots/sent_insta")
+
+  # sent_insta <- mutate(sent_insta, sent=pos-neg)
+  # sent_insta <- mutate(sent_insta, created_at=as.numeric(as.POSIXct(created_at)) * 1000)
+  # sent_insta <- sent_insta[ , !(names(sent_insta) %in% c("X1"))]
+  # save(sent_insta, file="sent_insta")
+  
   # sent_tweets <- read_csv("emoji_trunc.csv")
   # sent_tweets <- drop_na(sent_tweets)
   # save(sent_tweets, file="sent_tweets")
