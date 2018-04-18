@@ -84,6 +84,12 @@ p
 #     title = "Normalized Sentiment"))
 ```
 
+From this map, we can see that people are the happiest around Sentosa, Marina Bay and Sungei Boloh Wetland reserve from the tweets. This makes sense as they are tourist attractions and are more likely visited by people for recreation. People tend to post tweets of enjoyment in their trips.
+
+We can also tell that industrial islands in the south of Singapore are the least happy places. This could be the fact that people visiting the islands are likely there for mundane/tough industrial work, and tend to tweet about negative moods.
+
+We can also see that the central of Singapore is slightly happier than the outskirts of the country. This may be due to the fact that the central of Singapore is bustling with more recreational activities and night-life. Tourists also tend to mainly explore the central regions of Singapore. This can result in more positive posts towards the centre of Singapore.
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(insta.pa.sent$norm, n = 4, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -122,6 +128,12 @@ p <- ggplot() +
 p
 ```
 
+There are no posts in Tekong Island as posts about any military activity or facilities are prohibited.
+
+We can see from this map that the East and Central are generally happier than the West of Singapore. This is apparent in regions like Tuas, the industrial islands and Lim Chu Kang. This can be due to the fact that they contain big parts of industrial factories, farmlands, cemetaries and forests. This can result in more negative posts.
+
+The happiest areas are Punggol, Pasir Ris, Tanglin, Marina Bay and Ang Mo Kio, Changi Bay. This can be a result of higher recreational activities in these areas. Pasir Ris and Punggol have many parks, Tanglin has shopping centre and Botanical Gardens, Marina Bay is a tourist attraction and Ang Mo Kio has night-life and food places.
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(hex.sent$t.norm, n = 5, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -159,6 +171,12 @@ p <- ggplot() +
 p
 ```
 
+There are likely no posts within South of the Upper Seletar Reservoir as it is mainly vegetation.
+
+From this map, we can see that Tekong, Lim Chu Kang Road, Tuas, the industrial islands and Tanah Merah Coast Road are the least happy areas. We know from the previous map that there are actually twitter posts in Tekong. Tweets in Tekong could be unhappy as the National Service Forces or National Service Men dread serving in the military. For Tanah Merah Coast Road, Tuas and industrial islands, people could be unhappy during their working hours. Lim Chu Kang Road has many cemetaries and forested area, and this could mean generally more negative tweets.
+
+We can also see that areas like Bukit Timah Nature Reserve, Marina Bay, Sentosa and Sungei Boloh Wetland Reserve are the happiest. This is because they are prime recreational areas for both tourists and locals.
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(hex.sent$i.norm, n = 5, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -195,6 +213,10 @@ p <- ggplot() +
 
 p
 ```
+
+From this map, we can see that Tuas, Lim Chu Kang Road, Tekong, Jurong Island, Woodlands, Yishun, Pulau Ubin and Changi Airport are the least happy. This map supports the inferences from the tweets data in areas like Tuas, Jurong Island, Lim Chu Kang Road and Tekong. given that these are data from two different social media platforms, the inferences seem to be justified. There are also some similarities in the rest of the areas that are least happy wen compared to the tweets data (other than Changi Airport).
+
+When we compare Instagram to Twitter, we can see that posts on Instagram are generally happier. This can be due to the nature of Instagram where more photos are being shared instead of just posting a mood. This can mean that people tend to post less unhappy posts on Instagram as they may not want to blatantly show their negative moods. Twitter on the other hand mainly uses text posts where it appears less expressive. People can just post a simple caption or statement to express their mood in a more subtle manner.
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 hex.sent.odds <- hex.sent
@@ -248,6 +270,7 @@ p
 #  )
 ```
 
+From this map, we can see that posts in Twitter are generally less happy than Instagram. There are more Red and orange than green and blue. This means that the happiness score on twitter is generally lower than facebook, resulting in low odds ratio.
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -313,3 +336,4 @@ ggplotly(p, tooltip = "text") %>%
   layout(legend = l)
 ```
 
+From this map, we can see that people living in landed properties are generally the happiest, followed by condo owners, and finally HDB flat owners. This could be a good indication of the correlation between wealth and happiness. People living in private estates represent wealthier families and are actually happier than less well-off Singaporeans. However, the sample size is relatively small. While the data is interesting and supports the intuitive correlation between wealth and happiness, more investigation is needed. This is a good starting point in opening up a thesis for social research on wealth and happiness nonetheless.
