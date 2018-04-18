@@ -55,11 +55,12 @@ p <- ggplot() +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-ggplotly(p, tooltip = "text") %>%
- highlight(
-   "plotly_hover",
-   opacityDim = 1
- )
+p
+# ggplotly(p, tooltip = "text") %>%
+#  highlight(
+#    "plotly_hover",
+#    opacityDim = 1
+#  )
 ```
 From this map, we can see that people are the happiest around Sentosa, Marina Bay and Sungei Boloh Wetland reserve from the tweets. This makes sense as they are tourist attractions and are more likely visited by people for recreation. People tend to post tweets of enjoyment in their trips.
 
@@ -270,6 +271,7 @@ p <- ggplot(polygons.sf) +
     panel.grid.minor = element_line(colour = 'transparent')
   )
 
-ggplotly(p)
+p
+#ggplotly(p)
 ```
 From this map, we can see that people living in landed properties are generally the happiest, followed by condo owners, and finally HDB flat owners. This could be a good indication of the correlation between wealth and happiness. People living in private estates represent wealthier families and are actually happier than less well-off Singaporeans. However, the sample size is relatively small. While the data is interesting and supports the intuitive correlation between wealth and happiness, more investigation is needed. This is a good starting point in opening up a thesis for social research on wealth and happiness nonetheless.

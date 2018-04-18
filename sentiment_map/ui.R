@@ -20,9 +20,9 @@ navbarPage("Social Media Sentiment in Singapore",
       )
     )
   ),
-  # tabPanel("Case Studies",
-  #   includeHTML("case_studies.html")
-  # ),
+  tabPanel("Case Studies",
+    includeHTML("case_studies.html")
+  ),
   tabPanel("About",
     includeMarkdown("about.md")
   )

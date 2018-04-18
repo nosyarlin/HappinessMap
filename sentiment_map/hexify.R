@@ -147,3 +147,13 @@ ggplotly(p, tooltip = "text") %>%
 hex.sent <- st_as_sf(kml.data, coords = c("lon", "lat"), crs = 4326)
 save(hex.sent, file="hex.sent")
 #st_write(hex.sent, "plots/hex_sent.kml")
+
+
+load("plots/sent_insta") 
+
+p <- ggplot() +
+  stat_summary_hex(data=sent_insta, aes(x=lon, y=lat, z=pos, group=1), binwidth=0.01, drop=TRUE, show.legend=T, fun=function(x) if(length(x) > 100) {mean(x)} else {NA}) +
+  coord_fixed() +
+  scale_fill_viridis()
+ggplotly(p, tooltip=c("z"))
+
