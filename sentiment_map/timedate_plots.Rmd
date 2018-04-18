@@ -270,9 +270,6 @@ ggplotly(p, tooltip = "text") %>%
     opacityDim = 1
   )
 ```
-
-We can observe that Singaporeans are marginally happier on weekends compared to weekdays. Generally, social media sentiments are more negative in industrial areas compared to residential areas, and do not change much regardless of the day. We can also notice a change from sad to happy in recreational areas such as East Coast Park and Orchard Road.
-  
   
   
 **Case 2: Sentiments across various Time Periods** 
@@ -717,10 +714,3 @@ ggplotly(p, tooltip = "text") %>%
     opacityDim = 1
   )
 ```
-  
-**Some general observations that we can make based on time periods:**  
-
-* Singaporeans are happiest on social media from 12:00 - 17:59.  
-* From 18:00 - 23:59, residential areas remain largely happy, whereas the industrial areas (South and West parts of Singapore) are least happy (probably due to the need to work overtime).  
-* From 00:00 - 05:59, sentiments are largely unhappy, with small "happy" clusters around Choa Chu Kang, Ang Mo Kio, Geylang, Bedok and Tampines areas (possibly areas with 24/7 food options, and other *night activities*).
-* The east remains happy regardless of time period, I wonder why.  
