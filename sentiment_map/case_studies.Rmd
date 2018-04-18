@@ -28,6 +28,10 @@ load("plots/hex.sent") # Twitter / Instagram hex level data
 load("plots/twitter.pa.sent") # Twitter planning area level data
 load("plots/insta.pa.sent") # Instagram planning area level data
 load("plots/richpoor.sent") # Rich / poor data
+load("plots/time1.data") # SGT 00:00 - 05:59 
+load("plots/time2.data") # SGT 06:00 - 11:59  
+load("plots/time3.data") # SGT 12:00 - 17:59 
+load("plots/time4.data") # SGT 18:00 - 23:59
 ```
 
 
@@ -332,3 +336,157 @@ ggplotly(p, tooltip = "text") %>%
 ```
 
 From this map, we can see that people living in landed properties are generally the happiest, followed by condo owners, and finally HDB flat owners. This could be a good indication of the correlation between wealth and happiness. People living in private estates represent wealthier families and are actually happier than less well-off Singaporeans. However, the sample size is relatively small. While the data is interesting and supports the intuitive correlation between wealth and happiness, more investigation is needed. This is a good starting point in opening up a thesis for social research on wealth and happiness nonetheless.
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+time1 <- time1 %>% mutate(norm = (i.norm + t.norm)/2)
+class_int <- classIntervals(time1$norm, n = 5, style = "jenks")
+rounded <- round(class_int$brks,3)
+
+p <- ggplot() +
+  geom_sf(data = time1, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    name="Normalized Sentiment",
+    discrete=T,
+    labels = rounded,
+    guide=guide_legend(
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Sentiments in Singapore from 00:00 to 05:59",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"), 
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'), 
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+p
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+time2 <- time2 %>% mutate(norm = (i.norm + t.norm)/2)
+#class_int <- classIntervals(time2$norm, n = 5, style = "jenks")
+#rounded <- round(class_int$brks,3)
+
+p <- ggplot() +
+  geom_sf(data = time2, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    name="Normalized Sentiment",
+    discrete=T,
+    labels = rounded,
+    guide=guide_legend(
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Sentiments in Singapore from 06:00 to 11:59",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"), 
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'), 
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+p
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+time3 <- time3 %>% mutate(norm = (i.norm + t.norm)/2)
+#class_int <- classIntervals(time2$norm, n = 5, style = "jenks")
+#rounded <- round(class_int$brks,3)
+
+p <- ggplot() +
+  geom_sf(data = time3, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    name="Normalized Sentiment",
+    discrete=T,
+    labels = rounded,
+    guide=guide_legend(
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Sentiments in Singapore from 12:00 to 17:59",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"), 
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'), 
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+p
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+time4 <- time4 %>% mutate(norm = (i.norm + t.norm)/2)
+#class_int <- classIntervals(time2$norm, n = 5, style = "jenks")
+#rounded <- round(class_int$brks,3)
+
+p <- ggplot() +
+  geom_sf(data = time4, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
+  theme_void() +
+  coord_sf() +
+  scale_fill_viridis(
+    name="Normalized Sentiment",
+    discrete=T,
+    labels = rounded,
+    guide=guide_legend(
+      keyheight = unit(2, units = "mm"),
+      keywidth=unit(12, units = "mm"),
+      label.position = "bottom",
+      title.position = 'top',
+      nrow=1)) +
+  labs(
+    title = "Sentiments in Singapore from 18:00 to 23:59",
+    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
+    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
+  ) +
+  theme(
+    text = element_text(color = "#22211d"), 
+    plot.background = element_rect(fill = "#ffffff", color = NA), 
+    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'), 
+    panel.grid.minor = element_line(colour = 'transparent')
+  )
+
+p
+```
