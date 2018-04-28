@@ -17,6 +17,7 @@ navbarPage("Social Media Sentiment in Singapore",
                      min = 0.01, max = 0.05),
         numericInput('minPosts', 'Minimum Posts Threshold', 100,
                      min = 0, max = 1000),
+        checkboxInput('showMap', "Show Singapore Map", FALSE),
         width=3
       ),
       mainPanel(align="center",

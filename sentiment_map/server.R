@@ -86,23 +86,42 @@ function(input, output, session) {
 
   output$plotInteractive <- renderPlotly({
     plotData <- dateRange()
-    p <- ggplot(data=plotData, aes(x=plotData$lon, y=plotData$lat, z=selectedData(), group=1), stat="identity") +
-      stat_summary_hex(aes(text = paste0(input$sent, ": ", selectedData())),
-        binwidth=binSize(), drop=TRUE, show.legend=T, fun=function(x) if(length(x) > minPosts()) {func()(x)} else {NA}) + coord_fixed() +
-      scale_fill_viridis(name=input$sent) +
-      labs(x="Longitude", y="Latitude") +
-      scale_x_continuous(limits = c(103.6, 104)) + scale_y_continuous(limits = c(1.17, 1.48)) +
-      theme(
-        text = element_text(color = "#22211d"), 
-        legend.position = c(0.7, 0.09),
-        plot.background = element_rect(fill = "#FFFFFF", color = NA),
-        panel.background = element_rect(fill = "#FFFFFF", color = NA),
-        legend.background = element_rect(fill = "#FFFFFF", color = NA),
-        panel.grid.major = element_line(colour = 'transparent'), 
-        panel.grid.minor = element_line(colour = 'transparent')
-      )
 
-    # p
+    if(input$showMap) {
+      p <- ggplot(sg.sf) +
+        geom_sf() +
+        stat_summary_hex(data=plotData, stat="identity", aes(x=plotData$lon, y=plotData$lat, z=selectedData(), group=1, text = paste0(input$sent, ": ", selectedData())),
+          binwidth=binSize(), drop=TRUE, show.legend=T, fun=function(x) if(length(x) > minPosts()) {func()(x)} else {NA}) + coord_fixed() +
+        scale_fill_viridis(name=input$sent) +
+        labs(x="Longitude", y="Latitude") +
+        scale_x_continuous(limits = c(103.6, 104)) + scale_y_continuous(limits = c(1.17, 1.48)) +
+        theme(
+          text = element_text(color = "#22211d"), 
+          legend.position = c(0.7, 0.09),
+          plot.background = element_rect(fill = "#FFFFFF", color = NA),
+          panel.background = element_rect(fill = "#FFFFFF", color = NA),
+          legend.background = element_rect(fill = "#FFFFFF", color = NA),
+          panel.grid.major = element_line(colour = 'transparent'), 
+          panel.grid.minor = element_line(colour = 'transparent')
+        )
+    }
+    else {
+      p <- ggplot() +
+        stat_summary_hex(data=plotData, stat="identity", aes(x=plotData$lon, y=plotData$lat, z=selectedData(), group=1, text = paste0(input$sent, ": ", selectedData())),
+          binwidth=binSize(), drop=TRUE, show.legend=T, fun=function(x) if(length(x) > minPosts()) {func()(x)} else {NA}) + coord_fixed() +
+        scale_fill_viridis(name=input$sent) +
+        labs(x="Longitude", y="Latitude") +
+        scale_x_continuous(limits = c(103.6, 104)) + scale_y_continuous(limits = c(1.17, 1.48)) +
+        theme(
+          text = element_text(color = "#22211d"), 
+          legend.position = c(0.7, 0.09),
+          plot.background = element_rect(fill = "#FFFFFF", color = NA),
+          panel.background = element_rect(fill = "#FFFFFF", color = NA),
+          legend.background = element_rect(fill = "#FFFFFF", color = NA),
+          panel.grid.major = element_line(colour = 'transparent'), 
+          panel.grid.minor = element_line(colour = 'transparent')
+        )
+    }
 
     ggplotly(p, tooltip = "text") %>%
      highlight(
