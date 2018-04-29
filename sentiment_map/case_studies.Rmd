@@ -290,7 +290,7 @@ In the next series of maps, we can observe distinct spatial patterns among the c
 
 
 ### Comparing Sentiments Between Different Timings
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=8}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=7}
 class_int <- classIntervals(time.periods$norm, n=5, style = "jenks")
 rounded <- round(class_int$brks,3)
 
@@ -350,3 +350,6 @@ In conclusion, from our observations based on time periods, we can see that Sing
 Interestingly, one area stood out among the rest in all 4 maps. Yishun has a negative social media sentiment regardless of the time of the day. I wonder why 
 
 
+
+
+### Comparing Sentiments Between Different Housing Types
