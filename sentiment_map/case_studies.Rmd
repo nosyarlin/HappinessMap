@@ -28,13 +28,10 @@ load("plots/hex.sent") # Twitter / Instagram hex level data
 load("plots/twitter.pa.sent") # Twitter planning area level data
 load("plots/insta.pa.sent") # Instagram planning area level data
 load("plots/richpoor.sent") # Rich / poor data
-load("plots/time1.data") # SGT 00:00 - 05:59 
-load("plots/time2.data") # SGT 06:00 - 11:59  
-load("plots/time3.data") # SGT 12:00 - 17:59 
-load("plots/time4.data") # SGT 18:00 - 23:59
+load("plots/time.periods") # sentiment data split into different time periods
 ```
 
-
+### Twitter Sentiments Across Singapore (By Planning Area)
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(twitter.pa.sent$norm, n = 4, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -89,6 +86,10 @@ We can also tell that industrial islands in the south of Singapore are the least
 
 We can also see that the central of Singapore is slightly happier than the outskirts of the country. This may be due to the fact that the central of Singapore is bustling with more recreational activities and night-life. Tourists also tend to mainly explore the central regions of Singapore. This can result in more positive posts towards the centre of Singapore.
 
+
+
+
+### Instagram Sentiments Across Singapore (By Planning Area)
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(insta.pa.sent$norm, n = 4, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -131,10 +132,14 @@ At first glance, this map looks very similar to the previous map, with a few exc
 
 Firstly, the instagram posts made from the North-Eastern Islands are less happy than the tweets posted from the same area. The North-Eastern Islands include two main islands, Pulau Ubin, which is a tourist attraction, and Palau Tekong, which is a military territory where a lot of young Singaporean men are forced to serve the nation. Hence, tweets from the North-Eastern Islands are likely to have come from tourists, while instagram posts from likely to have come from unhappy NS boys. 
 
-The second exception we can see, is the Punggol-Pasir Ris area. This area has many parks, and is a place where many Singaporeans go to to relax on the weekends. Moreover, this place is not yet a tourist attraction (according to Jing Yu, he strongly objected). Hence, this results in less happy tweets (mainly from tourists) and more happy tweets from Singaporeans. 
+The second exception we can see, is the Punggol-Pasir Ris area. This area has many parks, and is a place where many Singaporeans go to to relax on the weekends. Moreover, this place is not yet a tourist attraction (according to Jing Yu, he strongly objected that those places are tourist attractions). Hence, this results in less happy tweets (mainly from tourists) and more happy instagram posts from Singaporeans. 
 
 In general, the happiest areas are Punggol, Pasir Ris, Tanglin, Marina Bay and Ang Mo Kio, Changi Bay. This can be a result of higher recreational activities in these areas. Pasir Ris and Punggol have many parks, Tanglin has shopping centre and Botanical Gardens, Marina Bay is a tourist attraction and Ang Mo Kio has night-life and food places.
 
+
+
+
+### Twitter Sentiments Across Singapore (By Hexagonal Grid)
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(hex.sent$t.norm, n = 5, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -172,10 +177,14 @@ p <- ggplot() +
 p
 ```
 
-Using a hex map, we can view the spatial data in higher granularity. From this map, we can see that Tekong, Tuas, the industrial islands, Tanah Merah Coast Road and Changi Airport are the least happy areas. We know from the previous map that there are actually twitter posts in Tekong. Tweets in Tekong could be unhappy as the National Service Forces or National Service Men dread serving in the military. For Tanah Merah Coast Road, Tuas and industrial islands, people could be unhappy during their working hours. Lim Chu Kang Road has many cemetaries and forested area, and this could mean generally more negative tweets.
+Using a hex map, we can view the spatial data in higher granularity. From this map, we can see that Tekong, Tuas, the industrial islands, Tanah Merah Coast Road and Changi Airport are the least happy areas. We can also see that areas like Bukit Timah Nature Reserve, Marina Bay, Sentosa and Sungei Boloh Wetland Reserve are the happiest. This is because they are prime recreational areas for both tourists and locals. The hex map mostly supports our observations from the previous planning area map. 
 
-We can also see that areas like Bukit Timah Nature Reserve, Marina Bay, Sentosa and Sungei Boloh Wetland Reserve are the happiest. This is because they are prime recreational areas for both tourists and locals.
+The one area that seems to be out of place, is Changi Airport. In both the Instagram and Twitter planning area maps, Changi Airport has mostly positive sentiments. In this one however, Changi Airport has zero to negative sentiments. People are either really sad to be arriving in Singapore, or really sad to be leaving Singapore. Hmm....
 
+
+
+
+### Instagram Sentiments Across Singapore (By Hexagonal Grid)
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 class_int <- classIntervals(hex.sent$i.norm, n = 5, style = "jenks")
 rounded <- round(class_int$brks,3)
@@ -213,10 +222,14 @@ p <- ggplot() +
 p
 ```
 
-From this map, we can see that Tuas, Lim Chu Kang Road, Tekong, Jurong Island, Woodlands, Yishun, Pulau Ubin and Changi Airport are the least happy. This map supports the inferences from the tweets data in areas like Tuas, Jurong Island, Lim Chu Kang Road and Tekong. given that these are data from two different social media platforms, the inferences seem to be justified. There are also some similarities in the rest of the areas that are least happy wen compared to the tweets data (other than Changi Airport).
+From this map, we can see that Tuas, Lim Chu Kang Road, Tekong, Jurong Island, Woodlands, Yishun, Pulau Ubin and Changi Airport are the least happy. This map supports the inferences from the tweets data in areas like Tuas, Jurong Island, Lim Chu Kang Road and Tekong. given that these are data from two different social media platforms, the inferences seem to be justified. There are also some similarities in the rest of the areas that are least happy when compared to the tweets data (other than Changi Airport).
 
 When we compare Instagram to Twitter, we can see that posts on Instagram are generally happier. This can be due to the nature of Instagram where more photos are being shared instead of just posting a mood. This can mean that people tend to post less unhappy posts on Instagram as they may not want to blatantly show their negative moods. Twitter on the other hand mainly uses text posts where it appears less expressive. People can just post a simple caption or statement to express their mood in a more subtle manner.
 
+
+
+
+### Comparing Sentiments Between Twitter and Instagram
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 hex.sent.odds <- hex.sent
 hex.sent.odds[hex.sent.odds$odds == 0,]$odds <- NA
@@ -269,15 +282,20 @@ p
 #  )
 ```
 
-From this map, we can see that posts in Twitter are generally less happy than Instagram. There are more blue hexagons than green hexagons. This means that the happiness score on twitter is generally lower than instagram, resulting in low odds ratio.
+The above map plots the odds ratio of the sentiments between Twitter and Instagram. The odds ratio is calculated by dividing the sentiments of Twitter posts by the sentiments of Instagram posts. A value greater than 1, would mean the Twitter posts are happier than Instagram posts in the same area. Looking at the map above, it is actually not obvious which social media has higher sentiments in Singapore. However, what we can see is that Instagram posts are a lot happier in Tanglin, Marina Parade, Jurong and Tuas. On the other hand, blue hexagons seem to spread out over the rest of Singapore. 
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-time1 <- time1 %>% mutate(norm = (i.norm + t.norm)/2)
-class_int <- classIntervals(time1$norm, n = 5, style = "jenks")
+In the next series of maps, we can observe distinct spatial patterns among the combined social media sentiment from both Twitter and Instagram based on various time periods of the day.
+
+
+
+
+### Comparing Sentiments Between Different Timings
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=8}
+class_int <- classIntervals(time.periods$norm, n=5, style = "jenks")
 rounded <- round(class_int$brks,3)
 
 p <- ggplot() +
-  geom_sf(data = time1, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
+  geom_sf(data = time.periods, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) +
   theme_void() +
   coord_sf() +
   scale_fill_viridis(
@@ -291,137 +309,44 @@ p <- ggplot() +
       title.position = 'top',
       nrow=1)) +
   labs(
-    title = "Sentiments in Singapore from 00:00 to 05:59",
+    title = "Sentiments in Singapore in different time periods",
     subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
     caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
   ) +
   theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#ffffff", color = NA), 
-    panel.background = element_rect(fill = "#ffffff", color = NA), 
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#ffffff", color = NA),
+    panel.background = element_rect(fill = "#ffffff", color = NA),
     legend.background = element_rect(fill = "#ffffff", color = NA),
     plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    legend.position = c(0.82, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
+    plot.caption = element_text(hjust = 0.01, margin = margin(b=0, t=2, unit = "cm")),
+    legend.position = c(0.82, -0.10),
+    panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
-  )
-
-p
-```
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-time2 <- time2 %>% mutate(norm = (i.norm + t.norm)/2)
-#class_int <- classIntervals(time2$norm, n = 5, style = "jenks")
-#rounded <- round(class_int$brks,3)
-
-p <- ggplot() +
-  geom_sf(data = time2, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  scale_fill_viridis(
-    name="Normalized Sentiment",
-    discrete=T,
-    labels = rounded,
-    guide=guide_legend(
-      keyheight = unit(2, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiments in Singapore from 06:00 to 11:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
   ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#ffffff", color = NA), 
-    panel.background = element_rect(fill = "#ffffff", color = NA), 
-    legend.background = element_rect(fill = "#ffffff", color = NA),
-    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    legend.position = c(0.82, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
+  facet_wrap(~ period, ncol = 2) +
+  theme(plot.margin=unit(c(1,1,1,1),"cm"))
 
 p
 ```
 
+####06:00 to 11:59
+The first segment which we will observe is from 06:00 to 11:59, where most Singaporeans would either be just starting their day, or ending their graveyard shifts. Most notably, there are clusters of low happiness in industrial areas of Changi Airport, Jurong, and Tuas, which operates around the clock. Hence, we can observe that generally, sentiments on social media are the lowest in the mornings among the various times of the day. 
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-time3 <- time3 %>% mutate(norm = (i.norm + t.norm)/2)
-#class_int <- classIntervals(time2$norm, n = 5, style = "jenks")
-#rounded <- round(class_int$brks,3)
+####12:00 to 17:59
+In the second segment of the day from 12:00 to 17:59. we can observe that sentiments around the island increase marginally, with a higher number of small happy clusters appearing. These areas are mainly tourist hotspots such as Sentosa, Orchard Road, and Mandai Zoo. However, sentiments in the industrial areas identified earlier in the morning remain gloom.
+Other notable happy clusters include popular lunch hangouts such as Jalan Kayu, Upper Thompson, and Kent Ridge. Majority of the people in these areas would post updates about their lunch and tea breaks, fulfilling their social and psychological needs of sharing with their ???friends???, thus creating this feel good effect within themselves, and boosting happiness in these areas. 
 
-p <- ggplot() +
-  geom_sf(data = time3, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  scale_fill_viridis(
-    name="Normalized Sentiment",
-    discrete=T,
-    labels = rounded,
-    guide=guide_legend(
-      keyheight = unit(2, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiments in Singapore from 12:00 to 17:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-  ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#ffffff", color = NA), 
-    panel.background = element_rect(fill = "#ffffff", color = NA), 
-    legend.background = element_rect(fill = "#ffffff", color = NA),
-    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    legend.position = c(0.82, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
+####18:00 to 23:59
+In the third segment from 18;00 to 23:59, where most Singaporeans would have ended work for the day (hopefully), we can identify an increase in happiness in town centres such as Jurong East, Choa Chu Kang, Sengkang, and Toa Payoh, where residents of these areas congregate to have their dinner and do some shopping before heading home. 
+The happy clusters also expands to entire areas, such as Orchard Road, Alexandra, Holland Village, and East Coast Park, popular hotspots for food and drinks after working hours. Singaporeans (and tourists) are happiest on social media at this time segment of the day, with the highest number of yellow hexagons among the 4 maps.
 
-p
-```
+####00:00 to 05:59
+Finally, the last segment that we will be observing is from 00:00 to 05:59. It is the time where most people in the residential areas would be winding down, and dreading school or work the next morning. Hence, the happiness levels in these areas decrease significantly. However in general, our social media posts are still much happier than those posted in the day. There are probably still a lot of night activities going on. 
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-time4 <- time4 %>% mutate(norm = (i.norm + t.norm)/2)
-#class_int <- classIntervals(time2$norm, n = 5, style = "jenks")
-#rounded <- round(class_int$brks,3)
+The happy clusters narrow down to the specific stretch of road from Holland Village leading to Marina Bay, which covers popular night spots such as Dempsey Hill, Orchard Road and Clarke Quay. Expectedly, another major hotspot after midnight is Geylang, which is full of happy people posting about their frog porridge supper.
 
-p <- ggplot() +
-  geom_sf(data = time4, aes(fill=cut(norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", norm)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  scale_fill_viridis(
-    name="Normalized Sentiment",
-    discrete=T,
-    labels = rounded,
-    guide=guide_legend(
-      keyheight = unit(2, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiments in Singapore from 18:00 to 23:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-  ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#ffffff", color = NA), 
-    panel.background = element_rect(fill = "#ffffff", color = NA), 
-    legend.background = element_rect(fill = "#ffffff", color = NA),
-    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    legend.position = c(0.82, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
-
-p
-```
+In conclusion, from our observations based on time periods, we can see that Singaporeans??? favourite pastime is eating. The more popular an area is for its food (and entertainment options after food), the more the happiness level of the area increases.
+Interestingly, one area stood out among the rest in all 4 maps. Yishun has a negative social media sentiment regardless of the time of the day. I wonder why 
 
 

@@ -16,6 +16,7 @@ library(gridExtra)
 library(rasterVis)
 require(spatialEco)
 library(plotly)
+library(classInt)
 
 set.seed(1)
 
@@ -74,145 +75,151 @@ i_wend <- insta %>%
   filter(weekday > 5) # filter only igs made on weekends  
 ```
   
+**Case 2: Different periods of the day**
 ```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
-# convert to sp points and polygon
-tweets <- drop_na(t_wday)
-# p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
+
+# Remove NAs
+tweets <- drop_na(tweets)
 tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
 
-insta <- drop_na(i_wday)
+insta <- drop_na(insta)
 insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
+insta.sf <- insta.sf %>% 
+  select(created_at, pos, neu, neg, date, weekday, geometry) %>%
+  mutate(sent = pos-neu)
 
-# pa.kml <- st_read("planning_area.kml")
-# pa.sf <- st_as_sf(pa.kml, crs=4326)
-# pa.utm <- as(st_zm(pa.sf), "Spatial")
-# pa.utm <- gBuffer(pa.utm, byid=TRUE, width=0) # clean up polygons
-# shape_utm <- spTransform(shape, CRS(proj4string(shape)))
+# Create hex grid
+shape_utm <- spTransform(shape, CRS(proj4string(shape)))
 hex_grid <- make_grid(shape_utm, cell_area = 0.0001, clip = T)
 hex.sf <- st_as_sf(hex_grid, crs=4326)
 hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
 
-# points in polygon
+# Change column names
 colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "datetime", "wday", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "datetime", "wday", "geometry")
+colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "datetime", "wday", "sent", "geometry")
 
-t.join <- st_join(tweets.sf, hex.sf, join = st_within)
+# Add time periods
+periods = c("12am - 6am", "6am - 12pm", "12pm - 6pm", "6pm - 12am")
+
+tweets.periods <- tweets.sf %>% 
+  mutate(period = case_when(
+    hour(datetime) < 6 ~ "12am - 6am", 
+    hour(datetime) >= 6 & hour(datetime) < 12 ~ "6am - 12pm",
+    hour(datetime) >= 12 & hour(datetime) < 18 ~ "12pm - 6pm",
+    hour(datetime) >= 18 ~ "6pm - 12am"
+  ))
+
+insta.periods <- insta.sf %>% 
+  mutate(period = case_when(
+    hour(datetime) < 6 ~ "12am - 6am", 
+    hour(datetime) >= 6 & hour(datetime) < 12 ~ "6am - 12pm",
+    hour(datetime) >= 12 & hour(datetime) < 18 ~ "12pm - 6pm",
+    hour(datetime) >= 18 ~ "6pm - 12am"
+))
+
+# Points in polygon
+t.join <- st_join(tweets.periods, hex.sf, join = st_within)
 t.join.df <- as.data.frame(t.join)
-t.join.summary <- t.join.df %>% group_by(hexID) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
-i.join <- st_join(insta.sf, hex.sf, join = st_within)
+t.join.df <- drop_na(t.join.df)
+t.join.summary <- t.join.df %>% group_by(hexID, period) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
+t.join.summary <- as.data.frame(t.join.summary)
+
+i.join <- st_join(insta.periods, hex.sf, join = st_within)
 i.join.df <- as.data.frame(i.join)
-i.join.summary <- i.join.df %>% group_by(hexID) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
+i.join.df <- drop_na(i.join.df )
+i.join.summary <- i.join.df %>% group_by(hexID, period) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
+i.join.summary <- as.data.frame(i.join.summary)
 
 # Add default values for missing hexagons
 for (i in hex.sf$hexID) {
   if (!(i %in% i.join.summary$hexID)) {
-    i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i))
+    for (time in periods) {
+      i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i, period = time))
+    }
   }
+  if (i %in% i.join.summary$hexID) {
+    temp <- i.join.summary %>% filter(hexID == i)
+    for (time in periods) {
+      if (!(time %in% temp$period)) {
+        i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i, period = time))
+      }
+    }
+  }
+  
   if (!(i %in% t.join.summary$hexID)) {
-    t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i))
+    for (time in periods) {
+      t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i, period = time))
+    }
+  }
+  
+  if (i %in% t.join.summary$hexID) {
+    temp <- t.join.summary %>% filter(hexID == i)
+    for (time in periods) {
+      if (!(time %in% temp$period)) {
+        t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i, period = time))
+      }
+    }
   }
 }
 
-join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
-#join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
+# join twitter and instagram data together
+#join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
 
-kml.data <- merge(join.summary, hex.sf, by = "hexID") %>% st_as_sf()
-kml.data <- st_as_sf(kml.data)
-kml.data <- kml.data %>% mutate(t.norm = (t.pos-t.neg)/t.count, i.norm = (i.pos-i.neg)/i.count, odds=t.pos/i.pos)
-kml.data[!is.finite(kml.data$odds),]$odds <- 0
-# ggplot(kml.data) + geom_histogram(aes(x=odds), bins=30)
+# Add normalized sent
+t.join.summary <- t.join.summary %>% mutate(t.norm = (t.pos-t.neg)/t.count)
+i.join.summary <- i.join.summary %>% mutate(i.norm = (i.pos-i.neg)/i.count)
 
-# Plot a histogram of the odds
+# add geometry back
+t.summary.sf <- merge(x = t.join.summary, y = hex.sf, by = "hexID")
+i.summary.sf <- merge(x = i.join.summary, y = hex.sf, by = "hexID")
+
+temp <- t.summary.sf %>% filter(period == "12pm - 6pm")
+
+save(t.summary.sf, file="tweets.periods")
+save(i.summary.sf, file="insta.periods")
+
+# Plot the hex maps
+class_int <- classIntervals(t.summary.sf$t.norm, n = 5, style = "jenks")
+rounded <- round(class_int$brks,3)
+
 p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
+  geom_sf(data = t.summary.sf, aes(fill=cut(t.norm, class_int$brks), geometry=geometry, text=paste0("Sentiment: ", t.norm)), lwd=0) +
   theme_void() +
   coord_sf() +
-  # scale_fill_viridis(
-  #   breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-  #   name="Normalized Sentiment",
-  #   guide=guide_legend(
-  #     keyheight = unit(3, units = "mm"),
-  #     keywidth=unit(12, units = "mm"),
-  #     label.position = "bottom",
-  #     title.position = 'top',
-  #     nrow=1)) +
-  scale_fill_distiller(
-    palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
-    na.value="grey",
+  scale_fill_viridis(
     name="Normalized Sentiment",
+    discrete=T,
+    labels = rounded,
     guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
+      keyheight = unit(2, units = "mm"),
       keywidth=unit(12, units = "mm"),
       label.position = "bottom",
       title.position = 'top',
       nrow=1)) +
   labs(
-    title = "Sentiment Odds Ratio on Weekdays",
+    title = "Twitter Sentiment in Singapore",
     subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
     caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
   ) +
   theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
+    text = element_text(color = "#22211d"),
+    plot.background = element_rect(fill = "#ffffff", color = NA),
+    panel.background = element_rect(fill = "#ffffff", color = NA),
+    legend.background = element_rect(fill = "#ffffff", color = NA),
+    plot.title = element_text(size= 18, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
+    legend.position = c(0.82, 0.09),
+    panel.grid.major = element_line(colour = 'transparent'),
     panel.grid.minor = element_line(colour = 'transparent')
-  )
+  ) +
+  facet_grid(. ~ period)
 
-#p
-ggplotly(p, tooltip = "text") %>%
-  highlight(
-    "plotly_hover",
-    opacityDim = 1
-  )
+p
 ```
   
-```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
-# convert to sp points and polygon
-tweets <- drop_na(t_wend)
-# p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
-tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
+  
 
-insta <- drop_na(i_wend)
-insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
 
-# pa.kml <- st_read("planning_area.kml")
-# pa.sf <- st_as_sf(pa.kml, crs=4326)
-# pa.utm <- as(st_zm(pa.sf), "Spatial")
-# pa.utm <- gBuffer(pa.utm, byid=TRUE, width=0) # clean up polygons
-# shape_utm <- spTransform(shape, CRS(proj4string(shape)))
-hex_grid <- make_grid(shape_utm, cell_area = 0.0001, clip = T)
-hex.sf <- st_as_sf(hex_grid, crs=4326)
-hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
-
-# points in polygon
-colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "datetime", "wday", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "datetime", "wday", "geometry")
-
-t.join <- st_join(tweets.sf, hex.sf, join = st_within)
-t.join.df <- as.data.frame(t.join)
-t.join.summary <- t.join.df %>% group_by(hexID) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
-i.join <- st_join(insta.sf, hex.sf, join = st_within)
-i.join.df <- as.data.frame(i.join)
-i.join.summary <- i.join.df %>% group_by(hexID) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
-
-# Add default values for missing hexagons
-for (i in hex.sf$hexID) {
-  if (!(i %in% i.join.summary$hexID)) {
-    i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i))
-  }
-  if (!(i %in% t.join.summary$hexID)) {
-    t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i))
-  }
-}
-
+``` {r}
 join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
 #join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
 
@@ -272,6 +279,7 @@ ggplotly(p, tooltip = "text") %>%
     "plotly_hover",
     opacityDim = 1
   )
+
 ```
 
 We can observe that Singaporeans are marginally happier on weekends compared to weekdays. Generally, social media sentiments are more negative in industrial areas compared to residential areas, and do not change much regardless of the day. We can also notice a change from sad to happy in recreational areas such as East Coast Park and Orchard Road.
@@ -286,443 +294,9 @@ We will be dividing the data into 4 time periods:
 * SGT 12:00 - 17:59 
 * SGT 18:00 - 23:59
 
-```{r, message = FALSE, warning = FALSE, error = FALSE}
-# Twitter
-  
-t_time1 <- tweets %>%
-  filter(hour(date) < 6) # filter tweets made between 12am - 6am
-  
-t_time2 <- tweets %>%
-  filter(hour(date) >= 6) %>%
-  filter(hour(date) < 12) # filter tweets made between 6am - 12pm
-  
-t_time3 <- tweets %>%
-  filter(hour(date) >= 12) %>%
-  filter(hour(date) < 18) # filter tweets made between 12pm - 6pm
-  
-t_time4 <- tweets %>%
-  filter(hour(date) >= 18) # filter tweets made between 6pm - 12am
-  
-# Instagram
-  
-i_time1 <- insta %>%
-  filter(hour(date) < 6) # filter igs made between 12am - 6am
-  
-i_time2 <- insta %>%
-  filter(hour(date) >= 6) %>%
-  filter(hour(date) < 12) # filter igs made between 6am - 12pm
-  
-i_time3 <- insta %>%
-  filter(hour(date) >= 12) %>%
-  filter(hour(date) < 18) # filter igs made between 12pm - 6pm
-  
-i_time4 <- insta %>%
-  filter(hour(date) >= 18) # filter igs made between 6pm - 12am
-```
-  
-```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
-# convert to sp points and polygon
-tweets <- drop_na(t_time1)
-# p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
-tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
-
-insta <- drop_na(i_time1)
-insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
-
-# pa.kml <- st_read("planning_area.kml")
-# pa.sf <- st_as_sf(pa.kml, crs=4326)
-# pa.utm <- as(st_zm(pa.sf), "Spatial")
-# pa.utm <- gBuffer(pa.utm, byid=TRUE, width=0) # clean up polygons
-# shape_utm <- spTransform(shape, CRS(proj4string(shape)))
-hex_grid <- make_grid(shape_utm, cell_area = 0.0001, clip = T)
-hex.sf <- st_as_sf(hex_grid, crs=4326)
-hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
-
-# points in polygon
-colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "datetime", "wday", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "datetime", "wday", "geometry")
-
-t.join <- st_join(tweets.sf, hex.sf, join = st_within)
-t.join.df <- as.data.frame(t.join)
-t.join.summary <- t.join.df %>% group_by(hexID) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
-i.join <- st_join(insta.sf, hex.sf, join = st_within)
-i.join.df <- as.data.frame(i.join)
-i.join.summary <- i.join.df %>% group_by(hexID) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
-
-# Add default values for missing hexagons
-for (i in hex.sf$hexID) {
-  if (!(i %in% i.join.summary$hexID)) {
-    i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i))
-  }
-  if (!(i %in% t.join.summary$hexID)) {
-    t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i))
-  }
-}
-
-join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
-#join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
-
-kml.data <- merge(join.summary, hex.sf, by = "hexID") %>% st_as_sf()
-kml.data <- st_as_sf(kml.data)
-kml.data <- kml.data %>% mutate(t.norm = (t.pos-t.neg)/t.count, i.norm = (i.pos-i.neg)/i.count, odds=t.pos/i.pos)
-kml.data[!is.finite(kml.data$odds),]$odds <- 0
-# ggplot(kml.data) + geom_histogram(aes(x=odds), bins=30)
-
-# Plot a histogram of the odds
-p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  # scale_fill_viridis(
-  #   breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-  #   name="Normalized Sentiment",
-  #   guide=guide_legend(
-  #     keyheight = unit(3, units = "mm"),
-  #     keywidth=unit(12, units = "mm"),
-  #     label.position = "bottom",
-  #     title.position = 'top',
-  #     nrow=1)) +
-  scale_fill_distiller(
-    palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
-    na.value="grey",
-    name="Normalized Sentiment",
-    guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiment Odds Ratio from 00:00 - 05:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-  ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
-
-#p
-ggplotly(p, tooltip = "text") %>%
-  highlight(
-    "plotly_hover",
-    opacityDim = 1
-  )
-```
-  
-```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
-# convert to sp points and polygon
-tweets <- drop_na(t_time2)
-# p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
-tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
-
-insta <- drop_na(i_time2)
-insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
-
-# pa.kml <- st_read("planning_area.kml")
-# pa.sf <- st_as_sf(pa.kml, crs=4326)
-# pa.utm <- as(st_zm(pa.sf), "Spatial")
-# pa.utm <- gBuffer(pa.utm, byid=TRUE, width=0) # clean up polygons
-# shape_utm <- spTransform(shape, CRS(proj4string(shape)))
-hex_grid <- make_grid(shape_utm, cell_area = 0.0001, clip = T)
-hex.sf <- st_as_sf(hex_grid, crs=4326)
-hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
-
-# points in polygon
-colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "datetime", "wday", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "datetime", "wday", "geometry")
-
-t.join <- st_join(tweets.sf, hex.sf, join = st_within)
-t.join.df <- as.data.frame(t.join)
-t.join.summary <- t.join.df %>% group_by(hexID) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
-i.join <- st_join(insta.sf, hex.sf, join = st_within)
-i.join.df <- as.data.frame(i.join)
-i.join.summary <- i.join.df %>% group_by(hexID) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
-
-# Add default values for missing hexagons
-for (i in hex.sf$hexID) {
-  if (!(i %in% i.join.summary$hexID)) {
-    i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i))
-  }
-  if (!(i %in% t.join.summary$hexID)) {
-    t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i))
-  }
-}
-
-join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
-#join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
-
-kml.data <- merge(join.summary, hex.sf, by = "hexID") %>% st_as_sf()
-kml.data <- st_as_sf(kml.data)
-kml.data <- kml.data %>% mutate(t.norm = (t.pos-t.neg)/t.count, i.norm = (i.pos-i.neg)/i.count, odds=t.pos/i.pos)
-kml.data[!is.finite(kml.data$odds),]$odds <- 0
-# ggplot(kml.data) + geom_histogram(aes(x=odds), bins=30)
-
-# Plot a histogram of the odds
-p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  # scale_fill_viridis(
-  #   breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-  #   name="Normalized Sentiment",
-  #   guide=guide_legend(
-  #     keyheight = unit(3, units = "mm"),
-  #     keywidth=unit(12, units = "mm"),
-  #     label.position = "bottom",
-  #     title.position = 'top',
-  #     nrow=1)) +
-  scale_fill_distiller(
-    palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
-    na.value="grey",
-    name="Normalized Sentiment",
-    guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiment Odds Ratio from 06:00 - 11:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-  ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
-
-#p
-ggplotly(p, tooltip = "text") %>%
-  highlight(
-    "plotly_hover",
-    opacityDim = 1
-  )
-```
-  
-```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
-# convert to sp points and polygon
-tweets <- drop_na(t_time3)
-# p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
-tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
-
-insta <- drop_na(i_time3)
-insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
-
-# pa.kml <- st_read("planning_area.kml")
-# pa.sf <- st_as_sf(pa.kml, crs=4326)
-# pa.utm <- as(st_zm(pa.sf), "Spatial")
-# pa.utm <- gBuffer(pa.utm, byid=TRUE, width=0) # clean up polygons
-# shape_utm <- spTransform(shape, CRS(proj4string(shape)))
-hex_grid <- make_grid(shape_utm, cell_area = 0.0001, clip = T)
-hex.sf <- st_as_sf(hex_grid, crs=4326)
-hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
-
-# points in polygon
-colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "datetime", "wday", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "datetime", "wday", "geometry")
-
-t.join <- st_join(tweets.sf, hex.sf, join = st_within)
-t.join.df <- as.data.frame(t.join)
-t.join.summary <- t.join.df %>% group_by(hexID) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
-i.join <- st_join(insta.sf, hex.sf, join = st_within)
-i.join.df <- as.data.frame(i.join)
-i.join.summary <- i.join.df %>% group_by(hexID) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
-
-# Add default values for missing hexagons
-for (i in hex.sf$hexID) {
-  if (!(i %in% i.join.summary$hexID)) {
-    i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i))
-  }
-  if (!(i %in% t.join.summary$hexID)) {
-    t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i))
-  }
-}
-
-join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
-#join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
-
-kml.data <- merge(join.summary, hex.sf, by = "hexID") %>% st_as_sf()
-kml.data <- st_as_sf(kml.data)
-kml.data <- kml.data %>% mutate(t.norm = (t.pos-t.neg)/t.count, i.norm = (i.pos-i.neg)/i.count, odds=t.pos/i.pos)
-kml.data[!is.finite(kml.data$odds),]$odds <- 0
-# ggplot(kml.data) + geom_histogram(aes(x=odds), bins=30)
-
-# Plot a histogram of the odds
-p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  # scale_fill_viridis(
-  #   breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-  #   name="Normalized Sentiment",
-  #   guide=guide_legend(
-  #     keyheight = unit(3, units = "mm"),
-  #     keywidth=unit(12, units = "mm"),
-  #     label.position = "bottom",
-  #     title.position = 'top',
-  #     nrow=1)) +
-  scale_fill_distiller(
-    palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
-    na.value="grey",
-    name="Normalized Sentiment",
-    guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiment Odds Ratio from 12:00 - 17:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-  ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
-
-#p
-ggplotly(p, tooltip = "text") %>%
-  highlight(
-    "plotly_hover",
-    opacityDim = 1
-  )
-```
-  
-```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
-# convert to sp points and polygon
-tweets <- drop_na(t_time4)
-# p <- SpatialPointsDataFrame(tweets, data.frame(id=1:728138))
-tweets.sf <- st_as_sf(tweets, coords = c('lon','lat'), crs=4326)
-
-insta <- drop_na(i_time4)
-insta.sf <- st_as_sf(insta, coords=c('lon', 'lat'), crs=4326)
-
-# pa.kml <- st_read("planning_area.kml")
-# pa.sf <- st_as_sf(pa.kml, crs=4326)
-# pa.utm <- as(st_zm(pa.sf), "Spatial")
-# pa.utm <- gBuffer(pa.utm, byid=TRUE, width=0) # clean up polygons
-# shape_utm <- spTransform(shape, CRS(proj4string(shape)))
-hex_grid <- make_grid(shape_utm, cell_area = 0.0001, clip = T)
-hex.sf <- st_as_sf(hex_grid, crs=4326)
-hex.sf <- tibble::rowid_to_column(hex.sf, "hexID")
-
-# points in polygon
-colnames(tweets.sf) <- c("t.neg", "t.neu", "t.pos", "t.created_at", "t.sent", "datetime", "wday", "geometry")
-colnames(insta.sf) <- c("i.created_at", "i.pos", "i.neu", "i.neg", "i.sent", "datetime", "wday", "geometry")
-
-t.join <- st_join(tweets.sf, hex.sf, join = st_within)
-t.join.df <- as.data.frame(t.join)
-t.join.summary <- t.join.df %>% group_by(hexID) %>% summarise(t.count = n(), t.pos = sum(t.pos), t.neg = sum(t.neg), t.neu = sum(t.neu)) 
-i.join <- st_join(insta.sf, hex.sf, join = st_within)
-i.join.df <- as.data.frame(i.join)
-i.join.summary <- i.join.df %>% group_by(hexID) %>% summarise(i.count = n(), i.pos = sum(i.pos), i.neg = sum(i.neg), i.neu = sum(i.neu)) 
-
-# Add default values for missing hexagons
-for (i in hex.sf$hexID) {
-  if (!(i %in% i.join.summary$hexID)) {
-    i.join.summary <- rbind(i.join.summary, data.frame(i.count=1, i.pos=0, i.neg=0, i.neu=0, hexID=i))
-  }
-  if (!(i %in% t.join.summary$hexID)) {
-    t.join.summary <- rbind(t.join.summary, data.frame(t.count=1, t.pos=0, t.neg=0, t.neu=0, hexID=i))
-  }
-}
-
-join.summary <- merge(t.join.summary, i.join.summary, by="hexID")
-#join.summary <- join.summary %>% select('t.count', 't.pos', 't.neg', 't.neu', 'i.count', 'i.pos', 'i.neg', 'i.neu', 'hexID') %>% drop_na()
-
-kml.data <- merge(join.summary, hex.sf, by = "hexID") %>% st_as_sf()
-kml.data <- st_as_sf(kml.data)
-kml.data <- kml.data %>% mutate(t.norm = (t.pos-t.neg)/t.count, i.norm = (i.pos-i.neg)/i.count, odds=t.pos/i.pos)
-kml.data[!is.finite(kml.data$odds),]$odds <- 0
-# ggplot(kml.data) + geom_histogram(aes(x=odds), bins=30)
-
-# Plot a histogram of the odds
-p <- ggplot() +
-  geom_sf(data = kml.data, aes(fill=odds, geometry=geometry, text=paste0("Odds Ratio: ", odds)), lwd=0) + 
-  theme_void() +
-  coord_sf() +
-  # scale_fill_viridis(
-  #   breaks=c(0,0.25,0.3,0.35,0.4,0.45),
-  #   name="Normalized Sentiment",
-  #   guide=guide_legend(
-  #     keyheight = unit(3, units = "mm"),
-  #     keywidth=unit(12, units = "mm"),
-  #     label.position = "bottom",
-  #     title.position = 'top',
-  #     nrow=1)) +
-  scale_fill_distiller(
-    palette="Spectral",
-    limits=c(0,2),
-    breaks=c(0,0.3,0.6,1,1.5,2),
-    na.value="grey",
-    name="Normalized Sentiment",
-    guide=guide_legend(
-      keyheight = unit(3, units = "mm"),
-      keywidth=unit(12, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow=1)) +
-  labs(
-    title = "Sentiment Odds Ratio from 18:00 - 23:59",
-    subtitle = "Normalized Sentiment score = (Positive - Negative)/Total Count",
-    caption = "Data: Ate Poorthuis | Creation: Dragon Minions"
-  ) +
-  theme(
-    text = element_text(color = "#22211d"), 
-    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
-    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(size= 22, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.4, l = 2, unit = "cm")),
-    plot.subtitle = element_text(size= 17, hjust=0.01, color = "#4e4d47", margin = margin(b = -0.1, t = 0.43, l = 2, unit = "cm")),
-    plot.caption = element_text( size=12, color = "#4e4d47", margin = margin(b = 0.3, r=-99, unit = "cm") ),
-    legend.position = c(0.7, 0.09),
-    panel.grid.major = element_line(colour = 'transparent'), 
-    panel.grid.minor = element_line(colour = 'transparent')
-  )
-
-#p
-ggplotly(p, tooltip = "text") %>%
-  highlight(
-    "plotly_hover",
-    opacityDim = 1
-  )
-```
-
 **Some general observations that we can make based on time periods:**
 
 *Singaporeans are happiest on social media from 12:00 - 17:59.
 *From 18:00 - 23:59, residential areas remain largely happy, whereas the industrial areas (South and West parts of Singapore) are least happy (probably due to the need to work overtime).
-*From 00:00 - 05:59, sentiments are largely unhappy, with small “happy” clusters around Choa Chu Kang, Ang Mo Kio, Geylang, Bedok and Tampines areas (possibly areas with 24/7 food options, and other night activities).
+*From 00:00 - 05:59, sentiments are largely unhappy, with small ???happy??? clusters around Choa Chu Kang, Ang Mo Kio, Geylang, Bedok and Tampines areas (possibly areas with 24/7 food options, and other night activities).
 *The east remains happy regardless of time period, I wonder why.
